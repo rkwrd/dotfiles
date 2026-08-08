@@ -1,4 +1,4 @@
-# Nord Light Dotfiles
+# dotfiles
 
 A modular, clean, and elegant personal dotfiles configuration tailored specifically for the **Nord Light** color palette (light gray/snowstorm background with polar night slate text, accented by frost blues and pastel auroras).
 
