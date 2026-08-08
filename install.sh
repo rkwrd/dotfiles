@@ -821,6 +821,17 @@ main() {
                 git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm" >/dev/null 2>&1
                 log_success "TPM installed."
             fi
+
+            # Headless installation of Tmux plugins
+            log_info "Downloading and installing Tmux plugins via TPM..."
+            tmux start-server \; new-session -d \; run-shell "$HOME/.tmux/plugins/tpm/bin/install_plugins" \; kill-server >/dev/null 2>&1 || true
+            log_success "Tmux plugins installed."
+        fi
+
+        # Reload configuration on active tmux server if running
+        if [ "$sel_tmux_config" = true ] && pgrep tmux >/dev/null 2>&1; then
+            log_info "Reloading active Tmux server configuration..."
+            tmux source-file "$HOME/.tmux.conf" >/dev/null 2>&1 || true
         fi
     fi
 
@@ -829,6 +840,13 @@ main() {
         install_tool_if_missing "neovim" "nvim"
         # Always stow config since nvim configurations are inside config/.config/nvim
         safe_stow "config"
+
+        if [ "$sel_lazy_plugins" = true ]; then
+            log_info "Bootstrapping Neovim plugins via lazy.nvim (this may take a few moments)..."
+            # Headless Neovim plugin download/sync
+            nvim --headless "+Lazy! sync" +qa >/dev/null 2>&1 || true
+            log_success "Neovim plugins bootstrapped successfully."
+        fi
     fi
 
     # 7. Apply Modern CLI utilities
@@ -862,9 +880,18 @@ main() {
 
     echo ""
     log_success "Dotfiles configuration completed successfully! No manual steps are required."
-    log_info "Your shell environment will load fully updated. Start a new session or run 'reload' to test it."
     if [ -d "$BACKUP_DIR" ]; then
         log_info "Your original system configurations were backed up to: $BACKUP_DIR"
+    fi
+
+    # 9. Auto-reload current terminal shell with the fresh configuration
+    if [ -t 0 ]; then
+        log_info "Activating your new shell session now..."
+        if [ "$sel_zsh" = true ] && command -v zsh >/dev/null 2>&1; then
+            exec zsh -l
+        elif [ "$sel_bash" = true ] && command -v bash >/dev/null 2>&1; then
+            exec bash -l
+        fi
     fi
 }
 
