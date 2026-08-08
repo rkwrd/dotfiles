@@ -20,13 +20,33 @@ This configuration is optimized for a terminal emulator using a **Light Theme** 
 
 The repository comes with a robust, interactive installation script (`install.sh`) powered by **GNU Stow**. 
 
-### Quick Start
-To clone the repository and run the setup:
+### Quick Start & One-Liner Options
+
+Select the installation method that fits your environment's constraints:
+
+#### Option 1: Git Clone (Standard Setup)
+For standard environments with public internet access:
 ```bash
-git clone git@github.com:rkwrd/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-./install.sh
+git clone https://github.com/rkwrd/dotfiles.git ~/dotfiles && cd ~/dotfiles && ./install.sh
 ```
+
+#### Option 2: Curl Tarball (Zero-Git Bootstrap)
+For minimal environments where `git` is missing:
+```bash
+curl -sSL https://github.com/rkwrd/dotfiles/archive/refs/heads/main.tar.gz | tar -xz && mv dotfiles-main ~/dotfiles && cd ~/dotfiles && ./install.sh
+```
+
+#### Option 3: Local to Remote VM Transfer (SCP / Cloud VM)
+For environments where the remote machine has restricted access or you want to deploy local changes instantly:
+
+*   **For GCP Compute Engine VM:**
+    ```bash
+    gcloud compute scp --recurse ~/dotfiles dotfiles-test:~/dotfiles --zone=us-central1-a && gcloud compute ssh dotfiles-test --zone=us-central1-a --command="cd ~/dotfiles && ./install.sh"
+    ```
+*   **For Generic SSH Servers:**
+    ```bash
+    scp -r ~/dotfiles user@remote-host:~/dotfiles && ssh user@remote-host "cd ~/dotfiles && ./install.sh"
+    ```
 
 ### Features of the Installer (`install.sh`)
 *   **System Diagnostics:** On launch, the script analyzes and prints your distribution details, CPU cores, system RAM, network IP, and local package manager.
