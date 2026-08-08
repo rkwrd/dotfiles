@@ -33,82 +33,7 @@ log_error() {
     echo -e "${NORD_AURORA_RED}[ERROR]${NC} $1" >&2
 }
 
-# 1. System Diagnostics
-print_diagnostics() {
-    echo -e "${NORD_POLAR_NIGHT}========================================="
-    echo -e "       SYSTEM DIAGNOSTICS & DETAILS      "
-    echo -e "=========================================${NC}"
-
-    # Get OS Name and Version
-    if [ -f /etc/os-release ]; then
-        . /etc/os-release
-        echo -e "OS Distro:      ${NORD_FROST_BLUE}${NAME} ${VERSION:-}${NC}"
-    elif [ -f /etc/lsb-release ]; then
-        . /etc/lsb-release
-        echo -e "OS Distro:      ${NORD_FROST_BLUE}${DISTRIB_DESCRIPTION:-}${NC}"
-    else
-        echo -e "OS Distro:      ${NORD_FROST_BLUE}$(uname -s) $(uname -r)${NC}"
-    fi
-
-    # Kernel Info
-    echo -e "Kernel Version: ${NORD_FROST_BLUE}$(uname -r)${NC}"
-
-    # CPU Cores
-    local cores
-    if command -v nproc >/dev/null 2>&1; then
-        cores=$(nproc)
-    elif command -v getconf >/dev/null 2>&1; then
-        cores=$(getconf _NPROCESSORS_ONLN)
-    else
-        cores=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || echo "Unknown")
-    fi
-    echo -e "CPU Cores:      ${NORD_FROST_BLUE}${cores}${NC}"
-
-    # RAM Info
-    local ram="Unknown"
-    if [ -f /proc/meminfo ]; then
-        local mem_kb
-        mem_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
-        ram="$((mem_kb / 1024 / 1024)) GB"
-    elif command -v free >/dev/null 2>&1; then
-        ram=$(free -h | awk '/^Mem:/ {print $2}')
-    elif command -v sysctl >/dev/null 2>&1; then
-        local mem_bytes
-        mem_bytes=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
-        if [ "$mem_bytes" -gt 0 ]; then
-            ram="$((mem_bytes / 1024 / 1024 / 1024)) GB"
-        fi
-    fi
-    echo -e "System Memory:  ${NORD_FROST_BLUE}${ram}${NC}"
-
-    # Local IP Address
-    local local_ip="Unknown"
-    if command -v hostname >/dev/null 2>&1; then
-        local_ip=$(hostname -I 2>/dev/null | awk '{print $1}' || hostname)
-    elif command -v ip >/dev/null 2>&1; then
-        local_ip=$(ip route get 1 2>/dev/null | awk '{print $7;exit}' || echo "Unknown")
-    elif command -v ifconfig >/dev/null 2>&1; then
-        local_ip=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $2}' | head -n 1)
-    fi
-    echo -e "Local IP:       ${NORD_FROST_BLUE}${local_ip}${NC}"
-
-    # External IP (with 2s timeout to avoid hanging)
-    local ext_ip="Offline/Unknown"
-    if command -v curl >/dev/null 2>&1; then
-        ext_ip=$(curl -s --max-time 2 https://api.ipify.org || curl -s --max-time 2 https://ifconfig.me || echo "Offline/Timeout")
-    elif command -v wget >/dev/null 2>&1; then
-        ext_ip=$(wget -T 2 -O - https://api.ipify.org 2>/dev/null || echo "Offline/Timeout")
-    fi
-    echo -e "External IP:    ${NORD_FROST_BLUE}${ext_ip}${NC}"
-
-    # Detected Package Manager
-    local pkg_manager
-    pkg_manager=$(detect_package_manager)
-    echo -e "Package Mgr:    ${NORD_FROST_BLUE}${pkg_manager}${NC}"
-    echo -e "${NORD_POLAR_NIGHT}=========================================${NC}\n"
-}
-
-# 2. Package Manager Detection
+# 1. Package Manager Detection
 detect_package_manager() {
     if command -v apt-get >/dev/null 2>&1; then
         echo "apt"
@@ -127,7 +52,103 @@ detect_package_manager() {
     fi
 }
 
-# 3. Automatic Dependency Installation
+# 2. Comprehensive System Diagnostics
+print_diagnostics() {
+    echo -e "${NORD_POLAR_NIGHT}================================================================="
+    echo -e "                 COMPREHENSIVE SYSTEM DIAGNOSTICS                "
+    echo -e "=================================================================${NC}"
+
+    # Hostname & User
+    echo -e "Hostname:        ${NORD_FROST_BLUE}$(hostname)${NC}"
+    echo -e "Current User:    ${NORD_FROST_BLUE}$(whoami) (UID: $(id -u))${NC}"
+    echo -e "Current Shell:   ${NORD_FROST_BLUE}${SHELL:-$(ps -p $$ -o comm=)}${NC}"
+
+    # Get OS Name and Version
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        echo -e "OS Distribution: ${NORD_FROST_BLUE}${NAME} ${VERSION:-}${NC}"
+    elif [ -f /etc/lsb-release ]; then
+        . /etc/lsb-release
+        echo -e "OS Distribution: ${NORD_FROST_BLUE}${DISTRIB_DESCRIPTION:-}${NC}"
+    else
+        echo -e "OS Distribution: ${NORD_FROST_BLUE}$(uname -s) $(uname -r)${NC}"
+    fi
+
+    # Kernel & Virtualization
+    echo -e "Kernel Version:  ${NORD_FROST_BLUE}$(uname -r)${NC}"
+    local virt="Physical / Bare Metal"
+    if command -v systemd-detect-virt >/dev/null 2>&1; then
+        virt=$(systemd-detect-virt || echo "Unknown Hypervisor")
+    fi
+    echo -e "Virtualization:  ${NORD_FROST_BLUE}${virt}${NC}"
+
+    # CPU Information
+    local cpu_model="Unknown"
+    if command -v lscpu >/dev/null 2>&1; then
+        cpu_model=$(lscpu | grep 'Model name:' | cut -d: -f2 | xargs || echo "Unknown")
+    elif [ -f /proc/cpuinfo ]; then
+        cpu_model=$(grep -m 1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs || echo "Unknown")
+    fi
+    echo -e "CPU Model:       ${NORD_FROST_BLUE}${cpu_model}${NC}"
+
+    local cores
+    if command -v nproc >/dev/null 2>&1; then
+        cores=$(nproc)
+    else
+        cores=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || echo "Unknown")
+    fi
+    echo -e "CPU Cores:       ${NORD_FROST_BLUE}${cores}${NC}"
+
+    # Memory Info
+    local ram="Unknown"
+    if command -v free >/dev/null 2>&1; then
+        ram=$(free -h | awk '/^Mem:/ {print $3 " / " $2}')
+    elif [ -f /proc/meminfo ]; then
+        local total_mem free_mem
+        total_mem=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+        free_mem=$(grep MemFree /proc/meminfo | awk '{print $2}')
+        ram="$(((total_mem - free_mem) / 1024 / 1024)) GB / $((total_mem / 1024 / 1024)) GB"
+    fi
+    echo -e "System Memory:  ${NORD_FROST_BLUE}${ram}${NC}"
+
+    # Disk Space
+    local disk_home="Unknown"
+    local disk_root="Unknown"
+    if command -v df >/dev/null 2>&1; then
+        disk_home=$(df -h ~ | tail -n 1 | awk '{print $4 " free of " $2}')
+        disk_root=$(df -h / | tail -n 1 | awk '{print $4 " free of " $2}')
+    fi
+    echo -e "Disk Space (~):  ${NORD_FROST_BLUE}${disk_home}${NC}"
+    echo -e "Disk Space (/):  ${NORD_FROST_BLUE}${disk_root}${NC}"
+
+    # System Uptime
+    local uptime_str="Unknown"
+    if command -v uptime >/dev/null 2>&1; then
+        uptime_str=$(uptime -p || uptime)
+    fi
+    echo -e "System Uptime:   ${NORD_FROST_BLUE}${uptime_str}${NC}"
+
+    # Network Details
+    local local_ip="Unknown"
+    if command -v hostname >/dev/null 2>&1; then
+        local_ip=$(hostname -I 2>/dev/null | awk '{print $1}' || hostname)
+    fi
+    echo -e "Local IP:       ${NORD_FROST_BLUE}${local_ip}${NC}"
+
+    local ext_ip="Offline/Unknown"
+    if command -v curl >/dev/null 2>&1; then
+        ext_ip=$(curl -s --max-time 2 https://api.ipify.org || curl -s --max-time 2 https://ifconfig.me || echo "Offline/Timeout")
+    fi
+    echo -e "External IP:    ${NORD_FROST_BLUE}${ext_ip}${NC}"
+
+    # Detected Package Manager
+    local pkg_manager
+    pkg_manager=$(detect_package_manager)
+    echo -e "Package Manager: ${NORD_FROST_BLUE}${pkg_manager}${NC}"
+    echo -e "${NORD_POLAR_NIGHT}=================================================================${NC}\n"
+}
+
+# 3. Dependency Installation
 install_packages() {
     local pm
     pm=$(detect_package_manager)
@@ -137,8 +158,9 @@ install_packages() {
         return 0
     fi
 
-    log_info "Automatically installing missing packages: ${pkgs[*]}"
+    log_info "Running package installation for: ${pkgs[*]}"
 
+    # Run updating and installing
     case "$pm" in
         apt)
             sudo apt-get update -qq
@@ -160,20 +182,18 @@ install_packages() {
             brew install "${pkgs[@]}"
             ;;
         *)
-            log_error "No supported package manager found. Please install manually: ${pkgs[*]}"
+            log_error "No package manager available to install packages. Please manually install: ${pkgs[*]}"
             exit 1
             ;;
     esac
 }
 
-# Map generic tool names to system-specific package names if necessary
 install_tool_if_missing() {
     local tool=$1
     local cmd=$2
 
     if ! command -v "$cmd" >/dev/null 2>&1; then
         log_info "$tool is not installed."
-        # Package naming overrides
         local pkg=$tool
         local pm
         pm=$(detect_package_manager)
@@ -181,12 +201,16 @@ install_tool_if_missing() {
         if [ "$tool" = "neovim" ]; then
             if [ "$pm" = "apt" ]; then pkg="neovim"; fi
         elif [ "$tool" = "eza" ]; then
-            # Eza is sometimes not in older apt repositories
             if [ "$pm" = "apt" ]; then
-                log_warn "eza might need custom PPA on debian/ubuntu. Attempting standard install..."
+                log_warn "eza might not be in standard apt repos. Attempting install..."
             fi
         elif [ "$tool" = "fd" ]; then
             if [ "$pm" = "apt" ]; then pkg="fd-find"; fi
+        elif [ "$tool" = "ripgrep" ]; then
+            if [ "$pm" = "apt" ]; then pkg="ripgrep"; fi
+        elif [ "$tool" = "gh" ]; then
+            install_gh_cli
+            return 0
         fi
 
         install_packages "$pkg"
@@ -201,94 +225,488 @@ install_tool_if_missing() {
     fi
 }
 
-# 4. TUI Checklist with Whiptail/Dialog and pure Bash Fallback
-select_components() {
-    local choices=()
-    
-    # Check if whiptail is available
-    if command -v whiptail >/dev/null 2>&1; then
-        local selected
-        selected=$(whiptail --title "Nord Light Dotfiles Installer" \
-            --checklist "Use Spacebar to select/deselect components, then press Enter:" 16 70 5 \
-            "shells" "Zsh, Bash configurations & Starship Prompt" ON \
-            "tmux" "Tmux config, TPM & pane navigator" ON \
-            "neovim" "Modern Neovim (lazy.nvim, LSP, Treesitter, Nord theme)" ON \
-            "utilities" "Modern CLI tools (bat, fzf, ripgrep, eza, zoxide, fd)" ON \
-            3>&1 1>&2 2>&3)
-        
-        # Parse space-separated string into array
-        for choice in $selected; do
-            # Remove quotes
-            choice="${choice//\"/}"
-            choices+=("$choice")
-        done
+install_gh_cli() {
+    local pm
+    pm=$(detect_package_manager)
+    log_info "Installing GitHub CLI (gh)..."
 
-    # Fallback to dialog
-    elif command -v dialog >/dev/null 2>&1; then
+    case "$pm" in
+        apt)
+            # Add official GitHub repository for debian/ubuntu
+            sudo mkdir -p -m 755 /etc/apt/keyrings
+            # Check if curl is available (install if missing)
+            if ! command -v curl >/dev/null 2>&1; then
+                sudo apt-get update -qq && sudo apt-get install -y curl
+            fi
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+            sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt-get update -qq
+            sudo apt-get install -y gh
+            ;;
+        pacman)
+            sudo pacman -S --noconfirm github-cli
+            ;;
+        dnf|yum)
+            sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo || true
+            sudo dnf install -y gh || sudo yum install -y gh
+            ;;
+        zypper)
+            sudo zypper addrepo https://cli.github.com/packages/rpm/gh-cli.repo || true
+            sudo zypper ref
+            sudo zypper install -y gh
+            ;;
+        brew)
+            brew install gh
+            ;;
+        *)
+            log_error "Cannot auto-install gh CLI. Please install manually."
+            ;;
+    esac
+}
+
+# 4. Interactive Configuration Selections (Open/Collapse Menu TUI)
+# Global component flags (defaults to all enabled)
+sel_bash=true
+sel_zsh=true
+sel_starship=true
+sel_tmux_config=true
+sel_tpm=true
+sel_neovim_config=true
+sel_lazy_plugins=true
+sel_bat=true
+sel_fzf=true
+sel_ripgrep=true
+sel_eza=true
+sel_zoxide=true
+sel_fd=true
+sel_git=true
+sel_gh=true
+
+# Helper to format status text for main menu
+get_group_status() {
+    local group=$1
+    case "$group" in
+        shells)
+            if [ "$sel_bash" = true ] && [ "$sel_zsh" = true ] && [ "$sel_starship" = true ]; then
+                echo "All Enabled"
+            elif [ "$sel_bash" = false ] && [ "$sel_zsh" = false ] && [ "$sel_starship" = false ]; then
+                echo "All Disabled"
+            else
+                echo "Partially Enabled"
+            fi
+            ;;
+        tmux)
+            if [ "$sel_tmux_config" = true ] && [ "$sel_tpm" = true ]; then
+                echo "All Enabled"
+            elif [ "$sel_tmux_config" = false ] && [ "$sel_tpm" = false ]; then
+                echo "All Disabled"
+            else
+                echo "Partially Enabled"
+            fi
+            ;;
+        neovim)
+            if [ "$sel_neovim_config" = true ] && [ "$sel_lazy_plugins" = true ]; then
+                echo "All Enabled"
+            elif [ "$sel_neovim_config" = false ] && [ "$sel_lazy_plugins" = false ]; then
+                echo "All Disabled"
+            else
+                echo "Partially Enabled"
+            fi
+            ;;
+        utilities)
+            local count=0
+            [ "$sel_bat" = true ] && ((count++))
+            [ "$sel_fzf" = true ] && ((count++))
+            [ "$sel_ripgrep" = true ] && ((count++))
+            [ "$sel_eza" = true ] && ((count++))
+            [ "$sel_zoxide" = true ] && ((count++))
+            [ "$sel_fd" = true ] && ((count++))
+
+            if [ "$count" -eq 6 ]; then
+                echo "All Enabled"
+            elif [ "$count" -eq 0 ]; then
+                echo "All Disabled"
+            else
+                echo "$count/6 Enabled"
+            fi
+            ;;
+        git)
+            if [ "$sel_git" = true ] && [ "$sel_gh" = true ]; then
+                echo "All Enabled"
+            elif [ "$sel_git" = false ] && [ "$sel_gh" = false ]; then
+                echo "All Disabled"
+            else
+                echo "Partially Enabled"
+            fi
+            ;;
+    esac
+}
+
+configure_components_whiptail() {
+    while true; do
+        local menu_choices
+        menu_choices=$(whiptail --title "Dotfiles Configuration Groups" --menu \
+            "Choose a group to expand and customize its components, or choose Install:" 18 78 7 \
+            "1. Shells & Prompt" "($(get_group_status shells))" \
+            "2. Tmux & Sessions" "($(get_group_status tmux))" \
+            "3. Neovim IDE" "($(get_group_status neovim))" \
+            "4. Modern CLI Tools" "($(get_group_status utilities))" \
+            "5. Git & GitHub CLI" "($(get_group_status git))" \
+            "6. [ PROCEED WITH INSTALLATION ]" "Apply configs and install" \
+            "7. [ EXIT ]" "Exit setup" 3>&1 1>&2 2>&3)
+
+        case "$menu_choices" in
+            "1. Shells & Prompt")
+                local sub_shells
+                sub_shells=$(whiptail --title "Customize Shells & Prompt" --checklist \
+                    "Select components to enable:" 15 70 3 \
+                    "bash" "Bash configuration (.bashrc, .bash_profile)" "$( [ "$sel_bash" = true ] && echo ON || echo OFF )" \
+                    "zsh" "Zsh configuration (.zshrc, .zprofile)" "$( [ "$sel_zsh" = true ] && echo ON || echo OFF )" \
+                    "starship" "Starship prompt & configurations" "$( [ "$sel_starship" = true ] && echo ON || echo OFF )" \
+                    3>&1 1>&2 2>&3) || continue
+                
+                sel_bash=false; sel_zsh=false; sel_starship=false
+                for item in $sub_shells; do
+                    item="${item//\"/}"
+                    [ "$item" = "bash" ] && sel_bash=true
+                    [ "$item" = "zsh" ] && sel_zsh=true
+                    [ "$item" = "starship" ] && sel_starship=true
+                done
+                ;;
+            "2. Tmux & Sessions")
+                local sub_tmux
+                sub_tmux=$(whiptail --title "Customize Tmux & Sessions" --checklist \
+                    "Select components to enable:" 15 70 2 \
+                    "tmux_config" "Tmux core config (.tmux.conf)" "$( [ "$sel_tmux_config" = true ] && echo ON || echo OFF )" \
+                    "tpm" "Tmux Plugin Manager & session resurrection" "$( [ "$sel_tpm" = true ] && echo ON || echo OFF )" \
+                    3>&1 1>&2 2>&3) || continue
+
+                sel_tmux_config=false; sel_tpm=false
+                for item in $sub_tmux; do
+                    item="${item//\"/}"
+                    [ "$item" = "tmux_config" ] && sel_tmux_config=true
+                    [ "$item" = "tpm" ] && sel_tpm=true
+                done
+                ;;
+            "3. Neovim IDE")
+                local sub_nvim
+                sub_nvim=$(whiptail --title "Customize Neovim IDE" --checklist \
+                    "Select components to enable:" 15 70 2 \
+                    "nvim_config" "Neovim basic config (init.lua, options, maps)" "$( [ "$sel_neovim_config" = true ] && echo ON || echo OFF )" \
+                    "lazy_plugins" "lazy.nvim plugins (LSP, cmp, Telescope, Nord Light)" "$( [ "$sel_lazy_plugins" = true ] && echo ON || echo OFF )" \
+                    3>&1 1>&2 2>&3) || continue
+
+                sel_neovim_config=false; sel_lazy_plugins=false
+                for item in $sub_nvim; do
+                    item="${item//\"/}"
+                    [ "$item" = "nvim_config" ] && sel_neovim_config=true
+                    [ "$item" = "lazy_plugins" ] && sel_lazy_plugins=true
+                done
+                ;;
+            "4. Modern CLI Tools")
+                local sub_utils
+                sub_utils=$(whiptail --title "Customize Modern CLI Tools" --checklist \
+                    "Select components to enable:" 18 70 6 \
+                    "bat" "bat syntax highlighting cat clone" "$( [ "$sel_bat" = true ] && echo ON || echo OFF )" \
+                    "fzf" "fzf fuzzy finder + Nord Light theme" "$( [ "$sel_fzf" = true ] && echo ON || echo OFF )" \
+                    "ripgrep" "ripgrep fast grep utility" "$( [ "$sel_ripgrep" = true ] && echo ON || echo OFF )" \
+                    "eza" "eza modern ls file lister" "$( [ "$sel_eza" = true ] && echo ON || echo OFF )" \
+                    "zoxide" "zoxide quick cd navigation tool" "$( [ "$sel_zoxide" = true ] && echo ON || echo OFF )" \
+                    "fd" "fd simple/fast find utility" "$( [ "$sel_fd" = true ] && echo ON || echo OFF )" \
+                    3>&1 1>&2 2>&3) || continue
+
+                sel_bat=false; sel_fzf=false; sel_ripgrep=false; sel_eza=false; sel_zoxide=false; sel_fd=false
+                for item in $sub_utils; do
+                    item="${item//\"/}"
+                    [ "$item" = "bat" ] && sel_bat=true
+                    [ "$item" = "fzf" ] && sel_fzf=true
+                    [ "$item" = "ripgrep" ] && sel_ripgrep=true
+                    [ "$item" = "eza" ] && sel_eza=true
+                    [ "$item" = "zoxide" ] && sel_zoxide=true
+                    [ "$item" = "fd" ] && sel_fd=true
+                done
+                ;;
+            "5. Git & GitHub CLI")
+                local sub_git
+                sub_git=$(whiptail --title "Customize Git & GitHub CLI" --checklist \
+                    "Select components to enable:" 15 70 2 \
+                    "git" "git package installation" "$( [ "$sel_git" = true ] && echo ON || echo OFF )" \
+                    "gh" "github-cli package installation" "$( [ "$sel_gh" = true ] && echo ON || echo OFF )" \
+                    3>&1 1>&2 2>&3) || continue
+
+                sel_git=false; sel_gh=false
+                for item in $sub_git; do
+                    item="${item//\"/}"
+                    [ "$item" = "git" ] && sel_git=true
+                    [ "$item" = "gh" ] && sel_gh=true
+                done
+                ;;
+            "6. [ PROCEED WITH INSTALLATION ]")
+                break
+                ;;
+            "7. [ EXIT ]"|*)
+                log_warn "Installation cancelled."
+                exit 0
+                ;;
+        esac
+    done
+}
+
+configure_components_dialog() {
+    while true; do
         local temp_file
         temp_file=$(mktemp)
-        dialog --title "Nord Light Dotfiles Installer" \
-            --checklist "Use Spacebar to select/deselect components:" 16 70 5 \
-            "shells" "Zsh, Bash configurations & Starship Prompt" ON \
-            "tmux" "Tmux config, TPM & pane navigator" ON \
-            "neovim" "Modern Neovim (lazy.nvim, LSP, Treesitter, Nord theme)" ON \
-            "utilities" "Modern CLI tools (bat, fzf, ripgrep, eza, zoxide, fd)" ON \
-            2> "$temp_file"
+        dialog --title "Dotfiles Configuration Groups" --menu \
+            "Choose a group to expand and customize its components, or choose Install:" 18 78 7 \
+            "1. Shells & Prompt" "($(get_group_status shells))" \
+            "2. Tmux & Sessions" "($(get_group_status tmux))" \
+            "3. Neovim IDE" "($(get_group_status neovim))" \
+            "4. Modern CLI Tools" "($(get_group_status utilities))" \
+            "5. Git & GitHub CLI" "($(get_group_status git))" \
+            "6. [ PROCEED WITH INSTALLATION ]" "Apply configs and install" \
+            "7. [ EXIT ]" "Exit setup" 2> "$temp_file"
         
-        local selected
-        selected=$(cat "$temp_file")
+        local menu_choices
+        menu_choices=$(cat "$temp_file")
         rm -f "$temp_file"
-        for choice in $selected; do
-            choice="${choice//\"/}"
-            choices+=("$choice")
-        done
 
-    # Fallback to pure Bash interactive menu
-    else
-        log_warn "Neither 'whiptail' nor 'dialog' found. Falling back to CLI interactive menu."
-        local options=("Bash + Zsh + Starship Prompt" "Tmux + TPM + Navigators" "Neovim (LSP/Treesitter/Nord Light)" "CLI Utilities (bat/fzf/rg/eza/zoxide)" "CONFIRM AND INSTALL")
-        local selections=(true true true true) # default to all ON
+        case "$menu_choices" in
+            "1. Shells & Prompt")
+                local sub_temp
+                sub_temp=$(mktemp)
+                dialog --title "Customize Shells & Prompt" --checklist \
+                    "Select components to enable:" 15 70 3 \
+                    "bash" "Bash configuration (.bashrc, .bash_profile)" "$( [ "$sel_bash" = true ] && echo ON || echo OFF )" \
+                    "zsh" "Zsh configuration (.zshrc, .zprofile)" "$( [ "$sel_zsh" = true ] && echo ON || echo OFF )" \
+                    "starship" "Starship prompt & configurations" "$( [ "$sel_starship" = true ] && echo ON || echo OFF )" \
+                    2> "$sub_temp" || continue
+                
+                local sub_shells
+                sub_shells=$(cat "$sub_temp")
+                rm -f "$sub_temp"
+                
+                sel_bash=false; sel_zsh=false; sel_starship=false
+                for item in $sub_shells; do
+                    item="${item//\"/}"
+                    [ "$item" = "bash" ] && sel_bash=true
+                    [ "$item" = "zsh" ] && sel_zsh=true
+                    [ "$item" = "starship" ] && sel_starship=true
+                done
+                ;;
+            "2. Tmux & Sessions")
+                local sub_temp
+                sub_temp=$(mktemp)
+                dialog --title "Customize Tmux & Sessions" --checklist \
+                    "Select components to enable:" 15 70 2 \
+                    "tmux_config" "Tmux core config (.tmux.conf)" "$( [ "$sel_tmux_config" = true ] && echo ON || echo OFF )" \
+                    "tpm" "Tmux Plugin Manager & session resurrection" "$( [ "$sel_tpm" = true ] && echo ON || echo OFF )" \
+                    2> "$sub_temp" || continue
 
-        while true; do
-            clear
-            print_diagnostics
-            echo "Select components to toggle (press number, then Enter. Enter 5 to confirm):"
-            for i in "${!options[@]}"; do
-                if [ "$i" -eq 4 ]; then
-                    echo -e "  $((i+1)) )  ${NORD_FROST_BLUE}${options[$i]}${NC}"
-                else
-                    local status="[ ]"
-                    if [ "${selections[$i]}" = true ]; then
-                        status="[X]"
-                    fi
-                    echo "  $((i+1)) )  $status ${options[$i]}"
-                fi
-            done
+                local sub_tmux
+                sub_tmux=$(cat "$sub_temp")
+                rm -f "$sub_temp"
 
-            read -r -p "Toggle choice [1-5]: " choice
-            if [[ "$choice" =~ ^[1-4]$ ]]; then
-                local idx=$((choice-1))
-                if [ "${selections[$idx]}" = true ]; then
-                    selections[$idx]=false
-                else
-                    selections[$idx]=true
-                fi
-            elif [ "$choice" -eq 5 ]; then
+                sel_tmux_config=false; sel_tpm=false
+                for item in $sub_tmux; do
+                    item="${item//\"/}"
+                    [ "$item" = "tmux_config" ] && sel_tmux_config=true
+                    [ "$item" = "tpm" ] && sel_tpm=true
+                done
+                ;;
+            "3. Neovim IDE")
+                local sub_temp
+                sub_temp=$(mktemp)
+                dialog --title "Customize Neovim IDE" --checklist \
+                    "Select components to enable:" 15 70 2 \
+                    "nvim_config" "Neovim basic config (init.lua, options, maps)" "$( [ "$sel_neovim_config" = true ] && echo ON || echo OFF )" \
+                    "lazy_plugins" "lazy.nvim plugins (LSP, cmp, Telescope, Nord Light)" "$( [ "$sel_lazy_plugins" = true ] && echo ON || echo OFF )" \
+                    2> "$sub_temp" || continue
+
+                local sub_nvim
+                sub_nvim=$(cat "$sub_temp")
+                rm -f "$sub_temp"
+
+                sel_neovim_config=false; sel_lazy_plugins=false
+                for item in $sub_nvim; do
+                    item="${item//\"/}"
+                    [ "$item" = "nvim_config" ] && sel_neovim_config=true
+                    [ "$item" = "lazy_plugins" ] && sel_lazy_plugins=true
+                done
+                ;;
+            "4. Modern CLI Tools")
+                local sub_temp
+                sub_temp=$(mktemp)
+                dialog --title "Customize Modern CLI Tools" --checklist \
+                    "Select components to enable:" 18 70 6 \
+                    "bat" "bat syntax highlighting cat clone" "$( [ "$sel_bat" = true ] && echo ON || echo OFF )" \
+                    "fzf" "fzf fuzzy finder + Nord Light theme" "$( [ "$sel_fzf" = true ] && echo ON || echo OFF )" \
+                    "ripgrep" "ripgrep fast grep utility" "$( [ "$sel_ripgrep" = true ] && echo ON || echo OFF )" \
+                    "eza" "eza modern ls file lister" "$( [ "$sel_eza" = true ] && echo ON || echo OFF )" \
+                    "zoxide" "zoxide quick cd navigation tool" "$( [ "$sel_zoxide" = true ] && echo ON || echo OFF )" \
+                    "fd" "fd simple/fast find utility" "$( [ "$sel_fd" = true ] && echo ON || echo OFF )" \
+                    2> "$sub_temp" || continue
+
+                local sub_utils
+                sub_utils=$(cat "$sub_temp")
+                rm -f "$sub_temp"
+
+                sel_bat=false; sel_fzf=false; sel_ripgrep=false; sel_eza=false; sel_zoxide=false; sel_fd=false
+                for item in $sub_utils; do
+                    item="${item//\"/}"
+                    [ "$item" = "bat" ] && sel_bat=true
+                    [ "$item" = "fzf" ] && sel_fzf=true
+                    [ "$item" = "ripgrep" ] && sel_ripgrep=true
+                    [ "$item" = "eza" ] && sel_eza=true
+                    [ "$item" = "zoxide" ] && sel_zoxide=true
+                    [ "$item" = "fd" ] && sel_fd=true
+                done
+                ;;
+            "5. Git & GitHub CLI")
+                local sub_temp
+                sub_temp=$(mktemp)
+                dialog --title "Customize Git & GitHub CLI" --checklist \
+                    "Select components to enable:" 15 70 2 \
+                    "git" "git package installation" "$( [ "$sel_git" = true ] && echo ON || echo OFF )" \
+                    "gh" "github-cli package installation" "$( [ "$sel_gh" = true ] && echo ON || echo OFF )" \
+                    2> "$sub_temp" || continue
+
+                local sub_git
+                sub_git=$(cat "$sub_temp")
+                rm -f "$sub_temp"
+
+                sel_git=false; sel_gh=false
+                for item in $sub_git; do
+                    item="${item//\"/}"
+                    [ "$item" = "git" ] && sel_git=true
+                    [ "$item" = "gh" ] && sel_gh=true
+                done
+                ;;
+            "6. [ PROCEED WITH INSTALLATION ]")
                 break
-            else
+                ;;
+            "7. [ EXIT ]"|*)
+                log_warn "Installation cancelled."
+                exit 0
+                ;;
+        esac
+    done
+}
+
+configure_components_fallback() {
+    while true; do
+        clear
+        print_diagnostics
+        echo -e "Expand and toggle component groups (or confirm to install):"
+        echo -e "  1 )  [+] Shells & Prompt       ➔ ($(get_group_status shells))"
+        echo -e "  2 )  [+] Tmux & Sessions       ➔ ($(get_group_status tmux))"
+        echo -e "  3 )  [+] Neovim IDE            ➔ ($(get_group_status neovim))"
+        echo -e "  4 )  [+] Modern CLI Tools      ➔ ($(get_group_status utilities))"
+        echo -e "  5 )  [+] Git & GitHub CLI      ➔ ($(get_group_status git))"
+        echo -e "  6 )  ${NORD_FROST_BLUE}[ PROCEED WITH INSTALLATION ]${NC}"
+        echo -e "  7 )  ${NORD_AURORA_RED}[ EXIT ]${NC}"
+        echo ""
+
+        read -r -p "Enter selection [1-7]: " menu_choice
+        case "$menu_choice" in
+            1)
+                while true; do
+                    clear
+                    echo "Shells Settings:"
+                    echo "  1) [$( [ "$sel_bash" = true ] && echo "X" || echo " " )] Bash Config"
+                    echo "  2) [$( [ "$sel_zsh" = true ] && echo "X" || echo " " )] Zsh Config"
+                    echo "  3) [$( [ "$sel_starship" = true ] && echo "X" || echo " " )] Starship Prompt"
+                    echo "  4) Return to Main Menu"
+                    read -r -p "Toggle selection [1-4]: " sub_ch
+                    [ "$sub_ch" = "1" ] && { [ "$sel_bash" = true ] && sel_bash=false || sel_bash=true; }
+                    [ "$sub_ch" = "2" ] && { [ "$sel_zsh" = true ] && sel_zsh=false || sel_zsh=true; }
+                    [ "$sub_ch" = "3" ] && { [ "$sel_starship" = true ] && sel_starship=false || sel_starship=true; }
+                    [ "$sub_ch" = "4" ] && break
+                done
+                ;;
+            2)
+                while true; do
+                    clear
+                    echo "Tmux Settings:"
+                    echo "  1) [$( [ "$sel_tmux_config" = true ] && echo "X" || echo " " )] Tmux Config (.tmux.conf)"
+                    echo "  2) [$( [ "$sel_tpm" = true ] && echo "X" || echo " " )] Tmux Plugin Manager (TPM)"
+                    echo "  3) Return to Main Menu"
+                    read -r -p "Toggle selection [1-3]: " sub_ch
+                    [ "$sub_ch" = "1" ] && { [ "$sel_tmux_config" = true ] && sel_tmux_config=false || sel_tmux_config=true; }
+                    [ "$sub_ch" = "2" ] && { [ "$sel_tpm" = true ] && sel_tpm=false || sel_tpm=true; }
+                    [ "$sub_ch" = "3" ] && break
+                done
+                ;;
+            3)
+                while true; do
+                    clear
+                    echo "Neovim Settings:"
+                    echo "  1) [$( [ "$sel_neovim_config" = true ] && echo "X" || echo " " )] Neovim config files"
+                    echo "  2) [$( [ "$sel_lazy_plugins" = true ] && echo "X" || echo " " )] lazy.nvim IDE plugins"
+                    echo "  3) Return to Main Menu"
+                    read -r -p "Toggle selection [1-3]: " sub_ch
+                    [ "$sub_ch" = "1" ] && { [ "$sel_neovim_config" = true ] && sel_neovim_config=false || sel_neovim_config=true; }
+                    [ "$sub_ch" = "2" ] && { [ "$sel_lazy_plugins" = true ] && sel_lazy_plugins=false || sel_lazy_plugins=true; }
+                    [ "$sub_ch" = "3" ] && break
+                done
+                ;;
+            4)
+                while true; do
+                    clear
+                    echo "Modern CLI Utilities:"
+                    echo "  1) [$( [ "$sel_bat" = true ] && echo "X" || echo " " )] bat"
+                    echo "  2) [$( [ "$sel_fzf" = true ] && echo "X" || echo " " )] fzf"
+                    echo "  3) [$( [ "$sel_ripgrep" = true ] && echo "X" || echo " " )] ripgrep"
+                    echo "  4) [$( [ "$sel_eza" = true ] && echo "X" || echo " " )] eza"
+                    echo "  5) [$( [ "$sel_zoxide" = true ] && echo "X" || echo " " )] zoxide"
+                    echo "  6) [$( [ "$sel_fd" = true ] && echo "X" || echo " " )] fd"
+                    echo "  7) Return to Main Menu"
+                    read -r -p "Toggle selection [1-7]: " sub_ch
+                    [ "$sub_ch" = "1" ] && { [ "$sel_bat" = true ] && sel_bat=false || sel_bat=true; }
+                    [ "$sub_ch" = "2" ] && { [ "$sel_fzf" = true ] && sel_fzf=false || sel_fzf=true; }
+                    [ "$sub_ch" = "3" ] && { [ "$sel_ripgrep" = true ] && sel_ripgrep=false || sel_ripgrep=true; }
+                    [ "$sub_ch" = "4" ] && { [ "$sel_eza" = true ] && sel_eza=false || sel_eza=true; }
+                    [ "$sub_ch" = "5" ] && { [ "$sel_zoxide" = true ] && sel_zoxide=false || sel_zoxide=true; }
+                    [ "$sub_ch" = "6" ] && { [ "$sel_fd" = true ] && sel_fd=false || sel_fd=true; }
+                    [ "$sub_ch" = "7" ] && break
+                done
+                ;;
+            5)
+                while true; do
+                    clear
+                    echo "Git & GitHub CLI:"
+                    echo "  1) [$( [ "$sel_git" = true ] && echo "X" || echo " " )] Git package"
+                    echo "  2) [$( [ "$sel_gh" = true ] && echo "X" || echo " " )] GitHub CLI (gh)"
+                    echo "  3) Return to Main Menu"
+                    read -r -p "Toggle selection [1-3]: " sub_ch
+                    [ "$sub_ch" = "1" ] && { [ "$sel_git" = true ] && sel_git=false || sel_git=true; }
+                    [ "$sub_ch" = "2" ] && { [ "$sel_gh" = true ] && sel_gh=false || sel_gh=true; }
+                    [ "$sub_ch" = "3" ] && break
+                done
+                ;;
+            6)
+                break
+                ;;
+            7)
+                log_warn "Installation cancelled."
+                exit 0
+                ;;
+            *)
                 log_error "Invalid selection."
                 sleep 1
-            fi
-        done
+                ;;
+        esac
+    done
+}
 
-        # Map selections back to component names
-        if [ "${selections[0]}" = true ]; then choices+=("shells"); fi
-        if [ "${selections[1]}" = true ]; then choices+=("tmux"); fi
-        if [ "${selections[2]}" = true ]; then choices+=("neovim"); fi
-        if [ "${selections[3]}" = true ]; then choices+=("utilities"); fi
+select_components() {
+    if command -v whiptail >/dev/null 2>&1; then
+        configure_components_whiptail
+    elif command -v dialog >/dev/null 2>&1; then
+        configure_components_dialog
+    else
+        configure_components_fallback
     fi
-
-    echo "${choices[@]}"
 }
 
 # 5. Safe Backup & stow execution
@@ -300,17 +718,13 @@ safe_stow() {
     install_tool_if_missing "stow" "stow"
 
     # Identify targets to backup before running stow
-    # Stow will symlink everything inside the folder to the target parent (usually $HOME)
-    # We inspect the target path of each element inside the dotfiles folder.
     find "$folder" -mindepth 1 -maxdepth 1 | while read -r item; do
         local rel_path
         rel_path=$(basename "$item")
         local target="$HOME/$rel_path"
 
-        # Special logic for config directory (we want to stow individual config dirs, not the whole config folder)
+        # Special logic for config directory
         if [ "$folder" = "config" ]; then
-             # inside config is .config/
-             # let's find things inside config/.config/
              find "config/.config" -mindepth 1 -maxdepth 1 | while read -r subitem; do
                  local sub_rel
                  sub_rel=$(basename "$subitem")
@@ -325,14 +739,12 @@ safe_stow() {
                      fi
                  fi
              done
-             # Stow config
              stow -R -d "$DOTFILES_DIR" -t "$HOME" "config"
              return 0
         fi
 
-        # If target exists and is NOT a symlink pointing to our dotfiles directory, back it up
+        # Standard file stow backups
         if [ -e "$target" ] || [ -L "$target" ]; then
-            # Verify if it already points to the correct location
             local target_link
             target_link=$(readlink -f "$target" || echo "")
             if [ "$target_link" != "$item" ]; then
@@ -353,78 +765,106 @@ main() {
     clear
     print_diagnostics
 
-    # Ask the user what components they want to install
-    local selected_components
-    selected_components=$(select_components)
+    # 1. First-class check: Ensure Git is installed immediately so git clone commands do not fail
+    log_info "Checking core environment tools..."
+    install_tool_if_missing "git" "git"
+    install_tool_if_missing "curl" "curl"
 
-    if [ -z "$selected_components" ]; then
-        log_warn "No components selected. Exiting."
-        exit 0
+    # 2. Get user selections using our open/collapse menu
+    select_components
+
+    # 3. Apply Git & GitHub CLI selections first
+    if [ "$sel_git" = true ]; then
+        install_tool_if_missing "git" "git"
+    fi
+    if [ "$sel_gh" = true ]; then
+        install_tool_if_missing "gh" "gh"
     fi
 
-    log_info "Selected components: $selected_components"
+    # 4. Apply Shell Configs
+    if [ "$sel_bash" = true ] || [ "$sel_zsh" = true ] || [ "$sel_starship" = true ]; then
+        # Install Zsh if selected
+        if [ "$sel_zsh" = true ]; then
+            install_tool_if_missing "zsh" "zsh"
+        fi
 
-    # Process selections
-    for component in $selected_components; do
-        case "$component" in
-            shells)
-                log_info "Configuring Shells (bash + zsh) and Starship Prompt..."
-                install_tool_if_missing "zsh" "zsh"
-                install_tool_if_missing "curl" "curl"
-                
-                # Check for Starship installation
-                if ! command -v starship >/dev/null 2>&1; then
-                    log_info "Installing Starship Prompt..."
-                    curl -sS https://starship.rs/install.sh | sh -s -- -y
-                fi
-                
-                safe_stow "bash"
-                safe_stow "zsh"
-                safe_stow "shared"
-                safe_stow "config" # Includes .config/starship.toml
-                ;;
+        # Install Starship if selected
+        if [ "$sel_starship" = true ]; then
+            if ! command -v starship >/dev/null 2>&1; then
+                log_info "Installing Starship Prompt..."
+                # Suppress starship script stdout/manual action outputs to prevent confusing the user
+                curl -sS https://starship.rs/install.sh | sh -s -- -y > /dev/null
+                log_success "Starship installed."
+            fi
+        fi
 
-            tmux)
-                log_info "Configuring Tmux..."
-                install_tool_if_missing "tmux" "tmux"
-                
-                # Install TPM (Tmux Plugin Manager) if missing
-                if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
-                    log_info "Installing Tmux Plugin Manager (TPM)..."
-                    git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
-                fi
-                
-                safe_stow "tmux"
-                ;;
+        # Stow directories
+        [ "$sel_bash" = true ] && safe_stow "bash"
+        [ "$sel_zsh" = true ] && safe_stow "zsh"
+        
+        # Always stow shared files and config directory if shells are activated
+        safe_stow "shared"
+        safe_stow "config"
+    fi
 
-            neovim)
-                log_info "Configuring Neovim..."
-                install_tool_if_missing "neovim" "nvim"
-                install_tool_if_missing "git" "git"
-                install_tool_if_missing "curl" "curl"
-                
-                # Neovim configs are located in config/.config/nvim/ (handled in stowing of config)
-                safe_stow "config"
-                ;;
+    # 5. Apply Tmux Configs
+    if [ "$sel_tmux_config" = true ] || [ "$sel_tpm" = true ]; then
+        if [ "$sel_tmux_config" = true ]; then
+            install_tool_if_missing "tmux" "tmux"
+            safe_stow "tmux"
+        fi
 
-            utilities)
-                log_info "Installing and configuring Modern CLI Utilities..."
-                install_tool_if_missing "bat" "bat"
-                install_tool_if_missing "fzf" "fzf"
-                install_tool_if_missing "ripgrep" "rg"
-                install_tool_if_missing "eza" "eza"
-                install_tool_if_missing "zoxide" "zoxide"
-                install_tool_if_missing "fd" "fd"
-                
-                safe_stow "shared" # Includes .fzf_nord_light
-                safe_stow "config" # Includes .config/bat/config
-                ;;
-        esac
-    done
+        if [ "$sel_tpm" = true ]; then
+            # Core git check is completed at main start, so this clone is safe
+            if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+                log_info "Installing Tmux Plugin Manager (TPM)..."
+                git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm" >/dev/null 2>&1
+                log_success "TPM installed."
+            fi
+        fi
+    fi
 
-    log_success "Dotfiles configuration completed successfully!"
+    # 6. Apply Neovim Configs
+    if [ "$sel_neovim_config" = true ] || [ "$sel_lazy_plugins" = true ]; then
+        install_tool_if_missing "neovim" "nvim"
+        # Always stow config since nvim configurations are inside config/.config/nvim
+        safe_stow "config"
+    fi
+
+    # 7. Apply Modern CLI utilities
+    if [ "$sel_bat" = true ] || [ "$sel_fzf" = true ] || [ "$sel_ripgrep" = true ] || [ "$sel_eza" = true ] || [ "$sel_zoxide" = true ] || [ "$sel_fd" = true ]; then
+        [ "$sel_bat" = true ] && install_tool_if_missing "bat" "bat"
+        [ "$sel_fzf" = true ] && install_tool_if_missing "fzf" "fzf"
+        [ "$sel_ripgrep" = true ] && install_tool_if_missing "ripgrep" "rg"
+        [ "$sel_eza" = true ] && install_tool_if_missing "eza" "eza"
+        [ "$sel_zoxide" = true ] && install_tool_if_missing "zoxide" "zoxide"
+        [ "$sel_fd" = true ] && install_tool_if_missing "fd" "fd"
+
+        safe_stow "shared" # Includes fzf Nord Light setups and ripgreprc
+        safe_stow "config" # Includes bat config
+    fi
+
+    # 8. Set Zsh as default shell if Zsh config is selected and shell is not Zsh
+    if [ "$sel_zsh" = true ] && [ "${SHELL##*/}" != "zsh" ]; then
+        local zsh_path
+        zsh_path=$(command -v zsh || echo "")
+        if [ -n "$zsh_path" ]; then
+            log_info "Setting default shell to Zsh..."
+            # Automated default shell switch
+            if sudo -n true 2>/dev/null; then
+                sudo chsh -s "$zsh_path" "$USER"
+                log_success "Default shell set to Zsh."
+            else
+                log_warn "Sudo rights are required to set Zsh as default shell automatically. Please run: chsh -s $zsh_path"
+            fi
+        fi
+    fi
+
+    echo ""
+    log_success "Dotfiles configuration completed successfully! No manual steps are required."
+    log_info "Your shell environment will load fully updated. Start a new session or run 'reload' to test it."
     if [ -d "$BACKUP_DIR" ]; then
-        log_info "Original configurations backed up to: $BACKUP_DIR"
+        log_info "Your original system configurations were backed up to: $BACKUP_DIR"
     fi
 }
 
