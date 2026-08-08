@@ -1,0 +1,16 @@
+# ~/.ripgreprc
+# Configured for Nord Light Dotfiles
+
+# Don't let ripgrep search in hidden files and directories by default
+# But allow customizing it
+--hidden
+
+# Exclude common directories from search
+--glob=!.git/
+--glob=!node_modules/
+--glob=!.svelte-kit/
+--glob=!target/
+--glob=!.next/
+
+# Use case-insensitive search by default, unless search pattern contains uppercase
+--smart-case

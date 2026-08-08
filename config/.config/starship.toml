@@ -1,0 +1,92 @@
+# ~/.config/starship.toml
+# Nord Light Starship Configuration
+
+# Get editor completions
+"$schema" = 'https://starship.rs/config-schema.json'
+
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_status\
+$python\
+$rust\
+$golang\
+$node\
+$docker_context\
+$aws\
+$cmd_duration\
+$line_break\
+$character"""
+
+[username]
+show_always = false
+format = "[$user]($style) "
+style_user = "fg:#2e3440 bold"
+
+[hostname]
+ssh_only = true
+format = "on [$hostname]($style) "
+style = "fg:#2e3440 bold"
+
+[directory]
+truncation_length = 3
+truncation_symbol = "…/"
+format = "[$path]($style)[$read_only]($read_only_style) "
+style = "fg:#5e81ac bold" # nord10 (Frost Blue, high contrast)
+read_only = " 🔒"
+read_only_style = "fg:#bf616a"
+
+[git_branch]
+symbol = " "
+format = "on [$symbol$branch]($style) "
+style = "fg:#b48ead bold" # nord15 (Aurora Purple)
+
+[git_status]
+format = "([$all_status$ahead_behind]($style) )"
+style = "fg:#bf616a" # nord11 (Aurora Red)
+conflicted = "="
+ahead = "⇡"
+behind = "⇣"
+diverged = "⇕"
+untracked = "?"
+stashed = "$"
+modified = "!"
+added = "+"
+renamed = "»"
+deleted = "✘"
+
+[character]
+success_symbol = "[❯](bold fg:#88c0d0)" # nord8 (Frost Teal)
+error_symbol = "[❯](bold fg:#bf616a)"   # nord11 (Aurora Red)
+vicmd_symbol = "[❮](bold fg:#a3be8c)"   # nord14 (Aurora Green)
+
+[cmd_duration]
+min_time = 500
+format = "took [$duration]($style) "
+style = "fg:#d08770 bold" # nord12 (Aurora Orange)
+
+[aws]
+symbol = "  "
+style = "fg:#d08770"
+
+[docker_context]
+symbol = "  "
+style = "fg:#5e81ac"
+
+[golang]
+symbol = " "
+style = "fg:#88c0d0"
+
+[node]
+symbol = " "
+style = "fg:#a3be8c"
+
+[python]
+symbol = " "
+style = "fg:#5e81ac"
+
+[rust]
+symbol = " "
+style = "fg:#d08770"

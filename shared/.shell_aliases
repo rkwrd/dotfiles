@@ -1,0 +1,56 @@
+# Shared aliases for bash and zsh
+
+# Override default commands if modern tools exist
+if command -v eza >/dev/null 2>&1; then
+    alias ls='eza --icons --color=always --group-directories-first'
+    alias ll='eza -la --icons --color=always --group-directories-first --git'
+    alias lt='eza --tree --level=2 --icons'
+else
+    alias ls='ls --color=auto'
+    alias ll='ls -lah'
+fi
+
+if command -v bat >/dev/null 2>&1; then
+    alias cat='bat --style=plain --theme=Nord'
+    alias preview='bat --theme=Nord'
+fi
+
+if command -v fd >/dev/null 2>&1; then
+    alias find='fd'
+fi
+
+if command -v rg >/dev/null 2>&1; then
+    alias grep='rg'
+    export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
+fi
+
+if command -v zoxide >/dev/null 2>&1; then
+    # zoxide initializes in .zshrc/.bashrc, but let's make a shortcut
+    alias cd='z'
+fi
+
+# Quick navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# Git convenience
+alias g='git'
+alias gs='git status'
+alias gd='git diff'
+alias gc='git commit -v'
+alias gca='git commit -v -a'
+alias gp='git push'
+alias gl='git log --oneline -n 15'
+alias gb='git branch'
+alias gco='git checkout'
+
+# Neovim shortcuts
+if command -v nvim >/dev/null 2>&1; then
+    alias v='nvim'
+    alias vi='nvim'
+    alias vim='nvim'
+fi
+
+# Reload shell config
+alias reload='exec $SHELL -l'

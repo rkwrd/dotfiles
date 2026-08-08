@@ -1,0 +1,15 @@
+# ~/.config/bat/config
+# Configured for Nord Light Dotfiles
+
+# Set the theme to Nord
+--theme="Nord"
+
+# Show line numbers, git status indicators, and file header
+--style="numbers,changes,header"
+
+# Use italic text in the output (e.g. for comments)
+--italic-text=always
+
+# Use space-based indentation instead of tabs
+--map-syntax "*.jenkinsfile:Groovy"
+--map-syntax "*.j2:HTML"

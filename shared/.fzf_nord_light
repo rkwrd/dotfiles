@@ -1,0 +1,26 @@
+# Nord Light theme configuration for FZF
+# This aligns the fuzzy finder perfectly with Nord Light aesthetics.
+
+export FZF_DEFAULT_OPTS='
+  --color=fg:#4c566a,bg:#eceff4,hl:#8fbcbb
+  --color=fg+:#2e3440,bg+:#e5e9f0,hl+:#88c0d0
+  --color=info:#81a1c1,prompt:#5e81ac,pointer:#bf616a
+  --color=marker:#a3be8c,spinner:#b48ead,header:#5e81ac
+  --prompt="❯ "
+  --pointer="❯"
+  --marker="✓"
+  --reverse
+  --height=45%
+  --border
+'
+
+# Use fd for listing files if available
+if command -v fd >/dev/null 2>&1; then
+  export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --exclude .git'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+fi
+
+# Use bat for file previews if available
+if command -v bat >/dev/null 2>&1; then
+  export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=header,grid --line-range :300 {}'"
+fi
