@@ -16,6 +16,38 @@ This configuration is optimized for a terminal emulator using a **Light Theme** 
 
 ---
 
+## 🔤 Nerd Fonts Prerequisite
+
+To render glyphs and icons correctly (such as the branch icon in Starship, status bar symbols in Tmux, and file tree icons in Neovim), you need to have a **Nerd Font** installed on your **local machine** (the client running your terminal emulator/SSH client), **not** on the remote server.
+
+### Recommended Fonts
+*   **JetBrainsMono Nerd Font** (Clean, highly legible monospace)
+*   **FiraCode Nerd Font** (Popular coding ligatures)
+
+### How to Install Locally
+
+#### On macOS (using Homebrew)
+```bash
+brew install --cask font-jetbrains-mono-nerd-font
+# OR
+brew install --cask font-fira-code-nerd-font
+```
+
+#### On Linux Client
+Download and unpack into your local fonts directory:
+```bash
+mkdir -p ~/.local/share/fonts
+curl -fLo "JetBrainsMono.zip" https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
+unzip JetBrainsMono.zip -d ~/.local/share/fonts
+fc-cache -fv
+rm JetBrainsMono.zip
+```
+
+> [!IMPORTANT]
+> After installation, open your local terminal settings (e.g. iTerm2, Terminal.app, Alacritty) and set the Font to **JetBrainsMono Nerd Font** or **FiraCode Nerd Font**.
+
+---
+
 ## 🚀 Installation & Bootstrapping
 
 The repository comes with a robust, interactive installation script (`install.sh`) powered by **GNU Stow**. 
