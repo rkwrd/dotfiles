@@ -22,7 +22,7 @@ export TERM=xterm-256color
 
 # Source shared shell definitions if they exist
 [ -f "$HOME/.shell_aliases" ] && . "$HOME/.shell_aliases"
-[ -f "$HOME/.fzf_nord_light" ] && . "$HOME/.fzf_nord_light"
+[ -f "$HOME/.fzf_nord" ] && . "$HOME/.fzf_nord"
 
 # Initialize Starship prompt if installed
 if command -v starship >/dev/null 2>&1; then

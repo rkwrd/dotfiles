@@ -25,7 +25,7 @@ opt.timeoutlen = 300       -- Faster key code sequence timeouts
 opt.clipboard = "unnamedplus" -- Sync with system clipboard
 
 -- UI Styling & Theme Settings
-opt.background = "light"   -- FORCE LIGHT BACKGROUND FOR NORD LIGHT
+opt.background = "dark"    -- FORCE DARK BACKGROUND FOR NORD
 opt.signcolumn = "yes"     -- Always show the sign column to prevent text shifts
 opt.cursorline = true      -- Highlight the line containing the cursor
 opt.wrap = false           -- Disable line wrapping by default

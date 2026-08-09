@@ -394,7 +394,7 @@ configure_components_whiptail() {
                 sub_nvim=$(whiptail --title "Customize Neovim IDE" --checklist \
                     "Select components to enable:" 15 70 2 \
                     "nvim_config" "Neovim basic config (init.lua, options, maps)" "$( [ "$sel_neovim_config" = true ] && echo ON || echo OFF )" \
-                    "lazy_plugins" "lazy.nvim plugins (LSP, cmp, Telescope, Nord Light)" "$( [ "$sel_lazy_plugins" = true ] && echo ON || echo OFF )" \
+                    "lazy_plugins" "lazy.nvim plugins (LSP, cmp, Telescope, Nord Dark)" "$( [ "$sel_lazy_plugins" = true ] && echo ON || echo OFF )" \
                     3>&1 1>&2 2>&3) || continue
 
                 sel_neovim_config=false; sel_lazy_plugins=false
@@ -409,7 +409,7 @@ configure_components_whiptail() {
                 sub_utils=$(whiptail --title "Customize Modern CLI Tools" --checklist \
                     "Select components to enable:" 18 70 6 \
                     "bat" "bat syntax highlighting cat clone" "$( [ "$sel_bat" = true ] && echo ON || echo OFF )" \
-                    "fzf" "fzf fuzzy finder + Nord Light theme" "$( [ "$sel_fzf" = true ] && echo ON || echo OFF )" \
+                    "fzf" "fzf fuzzy finder + Nord Dark theme" "$( [ "$sel_fzf" = true ] && echo ON || echo OFF )" \
                     "ripgrep" "ripgrep fast grep utility" "$( [ "$sel_ripgrep" = true ] && echo ON || echo OFF )" \
                     "eza" "eza modern ls file lister" "$( [ "$sel_eza" = true ] && echo ON || echo OFF )" \
                     "zoxide" "zoxide quick cd navigation tool" "$( [ "$sel_zoxide" = true ] && echo ON || echo OFF )" \
@@ -520,7 +520,7 @@ configure_components_dialog() {
                 dialog --title "Customize Neovim IDE" --checklist \
                     "Select components to enable:" 15 70 2 \
                     "nvim_config" "Neovim basic config (init.lua, options, maps)" "$( [ "$sel_neovim_config" = true ] && echo ON || echo OFF )" \
-                    "lazy_plugins" "lazy.nvim plugins (LSP, cmp, Telescope, Nord Light)" "$( [ "$sel_lazy_plugins" = true ] && echo ON || echo OFF )" \
+                    "lazy_plugins" "lazy.nvim plugins (LSP, cmp, Telescope, Nord Dark)" "$( [ "$sel_lazy_plugins" = true ] && echo ON || echo OFF )" \
                     2> "$sub_temp" || continue
 
                 local sub_nvim
@@ -540,7 +540,7 @@ configure_components_dialog() {
                 dialog --title "Customize Modern CLI Tools" --checklist \
                     "Select components to enable:" 18 70 6 \
                     "bat" "bat syntax highlighting cat clone" "$( [ "$sel_bat" = true ] && echo ON || echo OFF )" \
-                    "fzf" "fzf fuzzy finder + Nord Light theme" "$( [ "$sel_fzf" = true ] && echo ON || echo OFF )" \
+                    "fzf" "fzf fuzzy finder + Nord Dark theme" "$( [ "$sel_fzf" = true ] && echo ON || echo OFF )" \
                     "ripgrep" "ripgrep fast grep utility" "$( [ "$sel_ripgrep" = true ] && echo ON || echo OFF )" \
                     "eza" "eza modern ls file lister" "$( [ "$sel_eza" = true ] && echo ON || echo OFF )" \
                     "zoxide" "zoxide quick cd navigation tool" "$( [ "$sel_zoxide" = true ] && echo ON || echo OFF )" \
@@ -858,7 +858,7 @@ main() {
         [ "$sel_zoxide" = true ] && install_tool_if_missing "zoxide" "zoxide"
         [ "$sel_fd" = true ] && install_tool_if_missing "fd" "fd"
 
-        safe_stow "shared" # Includes fzf Nord Light setups and ripgreprc
+        safe_stow "shared" # Includes fzf Nord Dark setups and ripgreprc
         safe_stow "config" # Includes bat config
     fi
 

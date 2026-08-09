@@ -1,17 +1,17 @@
 # dotfiles
 
-A modular, clean, and elegant personal dotfiles configuration tailored specifically for the **Nord Light** color palette (light gray/snowstorm background with polar night slate text, accented by frost blues and pastel auroras).
+A modular, clean, and elegant personal dotfiles configuration tailored specifically for the **Nord Dark** color palette (dark polar night background, accented by frost blues and pastel auroras).
 
 Designed for minimal setup time, high performance, and fault tolerance across various personal and professional Linux and macOS environments.
 
 ---
 
 ## 🎨 Aesthetic & Themes
-This configuration is optimized for a terminal emulator using a **Light Theme** (specifically targeting the Nord Light background color `#eceff4` or `#e5e9f0`). 
+This configuration is optimized for a terminal emulator using a **Dark Theme** (specifically targeting the Nord Dark background color `#2e3440` or standard dark terminal backgrounds). 
 
-*   **Shell Prompt (Starship):** Customized with high-contrast slate colors (`#2e3440`) and soft Frost backgrounds.
-*   **Tmux Status Line:** Styled natively with light gray borders, a clean blue active tab indicator (`#81a1c1`), and status widgets showing system time and host.
-*   **Neovim:** Explicitly configured with `background = "light"` and the `nord.nvim` colorscheme, yielding a beautiful, low-strain light interface.
+*   **Shell Prompt (Starship):** Customized with Snow Storm colors (`#d8dee9`) and Frost/Aurora accents.
+*   **Tmux Status Line:** Styled natively with dark gray borders, a clean blue active tab indicator (`#88c0d0`), and status widgets.
+*   **Neovim:** Explicitly configured with `background = "dark"` and the `nord.nvim` colorscheme, yielding a beautiful, low-strain dark interface.
 *   **fzf / bat:** Styled using the Nord palette exports for interactive searches.
 
 ---
@@ -101,13 +101,13 @@ For environments where the remote machine has restricted access or you want to d
 │   └── .zprofile          # Zsh login shell configuration
 ├── shared/
 │   ├── .shell_aliases     # Common CLI aliases & overrides
-│   ├── .fzf_nord_light    # Nord Light styling palette for fzf
+│   ├── .fzf_nord          # Nord Dark styling palette for fzf
 │   └── .ripgreprc         # Sane defaults for ripgrep (ignore git, smart-case)
 ├── tmux/
 │   └── .tmux.conf         # Tmux configs, navigator splits, and Nord status line
 └── config/
     └── .config/
-        ├── starship.toml  # Starship prompt configuration (Nord Light)
+        ├── starship.toml  # Starship prompt configuration (Nord Dark)
         ├── bat/
         │   └── config     # bat syntax highlighter defaults (Nord theme)
         └── nvim/
@@ -143,5 +143,5 @@ A lightweight, modern Lua configuration that rivals pre-packaged distributions w
 
 ### 4. Command Line Utilities
 *   **`bat`:** Custom syntax-highlighting for code viewing.
-*   **`fzf`:** Styled to match the light theme background, with full file preview support powered by `bat`.
+*   **`fzf`:** Styled to match the dark theme background, with full file preview support powered by `bat`.
 *   **`ripgrep`:** Configured to search hidden files by default but ignore version control directories and respect your local `.gitignore`.

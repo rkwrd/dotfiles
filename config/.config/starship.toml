@@ -23,18 +23,18 @@ $character"""
 [username]
 show_always = false
 format = "[$user]($style) "
-style_user = "fg:#2e3440 bold"
+style_user = "fg:#d8dee9 bold"
 
 [hostname]
 ssh_only = true
 format = "on [$hostname]($style) "
-style = "fg:#2e3440 bold"
+style = "fg:#d8dee9 bold"
 
 [directory]
 truncation_length = 3
 truncation_symbol = "…/"
 format = "[$path]($style)[$read_only]($read_only_style) "
-style = "fg:#5e81ac bold" # nord10 (Frost Blue, high contrast)
+style = "fg:#81a1c1 bold" # nord10 (Frost Blue, high contrast)
 read_only = " 🔒"
 read_only_style = "fg:#bf616a"
 

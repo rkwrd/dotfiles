@@ -40,7 +40,7 @@ bindkey '^R' history-incremental-search-backward
 
 # Source shared shell definitions
 [ -f "$HOME/.shell_aliases" ] && source "$HOME/.shell_aliases"
-[ -f "$HOME/.fzf_nord_light" ] && source "$HOME/.fzf_nord_light"
+[ -f "$HOME/.fzf_nord" ] && source "$HOME/.fzf_nord"
 
 # Load plugins manually if installed (highly optimized, no bloated manager needed)
 # Typical plugin paths for debian, arch, and homebrew

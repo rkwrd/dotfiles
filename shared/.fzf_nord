@@ -1,11 +1,11 @@
-# Nord Light theme configuration for FZF
-# This aligns the fuzzy finder perfectly with Nord Light aesthetics.
+# Nord Dark theme configuration for FZF
+# This aligns the fuzzy finder perfectly with Nord Dark aesthetics.
 
 export FZF_DEFAULT_OPTS='
-  --color=fg:#4c566a,bg:#eceff4,hl:#8fbcbb
-  --color=fg+:#2e3440,bg+:#e5e9f0,hl+:#88c0d0
-  --color=info:#81a1c1,prompt:#5e81ac,pointer:#bf616a
-  --color=marker:#a3be8c,spinner:#b48ead,header:#5e81ac
+  --color=fg:#d8dee9,bg:#2e3440,hl:#81a1c1
+  --color=fg+:#eceff4,bg+:#3b4252,hl+:#88c0d0
+  --color=info:#e5e9f0,prompt:#81a1c1,pointer:#bf616a
+  --color=marker:#a3be8c,spinner:#b48ead,header:#81a1c1
   --prompt="❯ "
   --pointer="❯"
   --marker="✓"
