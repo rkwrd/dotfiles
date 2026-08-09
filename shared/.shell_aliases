@@ -3,8 +3,8 @@
 # Override default commands if modern tools exist
 if command -v eza >/dev/null 2>&1; then
     alias ls='eza --icons --color=always --group-directories-first'
-    alias ll='eza -la --icons --color=always --group-directories-first --classify --created --modified --no-permissions --no-user --no-groups --header'
-    alias lll='eza -la --icons --color=always --group-directories-first --classify --created --modified --no-groups --header'
+    alias ll='eza -la --icons --color=always --group-directories-first --classify --created --modified --no-permissions --no-user --header'
+    alias lll='eza -la --icons --color=always --group-directories-first --classify --created --modified --header'
     alias lt='eza --tree --level=2 --icons'
 else
     alias ls='ls --color=auto'
