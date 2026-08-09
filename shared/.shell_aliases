@@ -24,10 +24,7 @@ if command -v rg >/dev/null 2>&1; then
     export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 fi
 
-if command -v zoxide >/dev/null 2>&1; then
-    # zoxide initializes in .zshrc/.bashrc, but let's make a shortcut
-    alias cd='z'
-fi
+
 
 # Quick navigation
 alias ..='cd ..'
