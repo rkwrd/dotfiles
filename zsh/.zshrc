@@ -62,6 +62,15 @@ for dir in "${plugin_dirs[@]}"; do
     fi
 done
 
+# Enable Vi command line keybindings
+bindkey -v
+
+# Force prompt to redraw when switching Vi modes (so Starship updates character symbol)
+function zle-keymap-select {
+    zle reset-prompt
+}
+zle -N zle-keymap-select
+
 # Initialize Starship prompt if installed
 if command -v starship >/dev/null 2>&1; then
     eval "$(starship init zsh)"
