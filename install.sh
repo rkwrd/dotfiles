@@ -188,6 +188,49 @@ install_packages() {
     esac
 }
 
+install_superfile() {
+    local arch
+    arch=$(uname -m)
+    local os
+    os=$(uname -s)
+
+    if [ "$os" = "Linux" ] && [[ "$arch" == "x86_64" || "$arch" == "amd64" ]]; then
+        log_info "Installing superfile (latest stable) for Linux x86_64..."
+        mkdir -p "$HOME/.local/bin"
+        
+        local version
+        version=$(curl -s "https://api.github.com/repos/yorukot/superfile/releases/latest" | grep '"tag_name"' | cut -d'"' -f4 | sed 's/^v//')
+        
+        if [ -z "$version" ]; then
+            log_error "Failed to fetch superfile version from GitHub."
+            return 1
+        fi
+        
+        local file_name="superfile-linux-v${version}-amd64"
+        local url="https://github.com/yorukot/superfile/releases/download/v${version}/${file_name}.tar.gz"
+        
+        local temp_dir
+        temp_dir=$(mktemp -d)
+        curl -sSL -o "$temp_dir/superfile.tar.gz" "$url"
+        tar -xzf "$temp_dir/superfile.tar.gz" -C "$temp_dir"
+        mv "$temp_dir/dist/${file_name}/spf" "$HOME/.local/bin/spf"
+        chmod +x "$HOME/.local/bin/spf"
+        rm -rf "$temp_dir"
+        log_success "superfile installed to ~/.local/bin/spf"
+    elif [ "$os" = "Darwin" ]; then
+        local pm
+        pm=$(detect_package_manager)
+        if [ "$pm" = "brew" ]; then
+            log_info "Installing superfile via Homebrew..."
+            brew install superfile
+        else
+            log_error "Please install superfile via brew install superfile manually."
+        fi
+    else
+        log_error "Unsupported platform for auto-installing superfile. Please install manually."
+    fi
+}
+
 install_eza_modern() {
     local arch
     arch=$(uname -m)
@@ -290,6 +333,9 @@ install_tool_if_missing() {
         elif [ "$tool" = "eza" ]; then
             install_eza_modern
             return 0
+        elif [ "$tool" = "superfile" ]; then
+            install_superfile
+            return 0
         elif [ "$tool" = "fd" ]; then
             if [ "$pm" = "apt" ]; then pkg="fd-find"; fi
         elif [ "$tool" = "ripgrep" ]; then
@@ -371,6 +417,7 @@ sel_zoxide=true
 sel_fd=true
 sel_git=true
 sel_gh=true
+sel_superfile=true
 
 # Helper to format status text for main menu
 get_group_status() {
@@ -411,13 +458,14 @@ get_group_status() {
             [ "$sel_eza" = true ] && ((count++))
             [ "$sel_zoxide" = true ] && ((count++))
             [ "$sel_fd" = true ] && ((count++))
+            [ "$sel_superfile" = true ] && ((count++))
 
-            if [ "$count" -eq 6 ]; then
+            if [ "$count" -eq 7 ]; then
                 echo "All Enabled"
             elif [ "$count" -eq 0 ]; then
                 echo "All Disabled"
             else
-                echo "$count/6 Enabled"
+                echo "$count/7 Enabled"
             fi
             ;;
         git)
@@ -496,16 +544,17 @@ configure_components_whiptail() {
             "4. Modern CLI Tools")
                 local sub_utils
                 sub_utils=$(whiptail --title "Customize Modern CLI Tools" --checklist \
-                    "Select components to enable:" 18 70 6 \
+                    "Select components to enable:" 19 70 7 \
                     "bat" "bat syntax highlighting cat clone" "$( [ "$sel_bat" = true ] && echo ON || echo OFF )" \
                     "fzf" "fzf fuzzy finder + Nord Dark theme" "$( [ "$sel_fzf" = true ] && echo ON || echo OFF )" \
                     "ripgrep" "ripgrep fast grep utility" "$( [ "$sel_ripgrep" = true ] && echo ON || echo OFF )" \
                     "eza" "eza modern ls file lister" "$( [ "$sel_eza" = true ] && echo ON || echo OFF )" \
                     "zoxide" "zoxide quick cd navigation tool" "$( [ "$sel_zoxide" = true ] && echo ON || echo OFF )" \
                     "fd" "fd simple/fast find utility" "$( [ "$sel_fd" = true ] && echo ON || echo OFF )" \
+                    "superfile" "superfile modern terminal file manager" "$( [ "$sel_superfile" = true ] && echo ON || echo OFF )" \
                     3>&1 1>&2 2>&3) || continue
 
-                sel_bat=false; sel_fzf=false; sel_ripgrep=false; sel_eza=false; sel_zoxide=false; sel_fd=false
+                sel_bat=false; sel_fzf=false; sel_ripgrep=false; sel_eza=false; sel_zoxide=false; sel_fd=false; sel_superfile=false
                 for item in $sub_utils; do
                     item="${item//\"/}"
                     [ "$item" = "bat" ] && sel_bat=true
@@ -514,6 +563,7 @@ configure_components_whiptail() {
                     [ "$item" = "eza" ] && sel_eza=true
                     [ "$item" = "zoxide" ] && sel_zoxide=true
                     [ "$item" = "fd" ] && sel_fd=true
+                    [ "$item" = "superfile" ] && sel_superfile=true
                 done
                 ;;
             "5. Git & GitHub CLI")
@@ -627,20 +677,21 @@ configure_components_dialog() {
                 local sub_temp
                 sub_temp=$(mktemp)
                 dialog --title "Customize Modern CLI Tools" --checklist \
-                    "Select components to enable:" 18 70 6 \
+                    "Select components to enable:" 19 70 7 \
                     "bat" "bat syntax highlighting cat clone" "$( [ "$sel_bat" = true ] && echo ON || echo OFF )" \
                     "fzf" "fzf fuzzy finder + Nord Dark theme" "$( [ "$sel_fzf" = true ] && echo ON || echo OFF )" \
                     "ripgrep" "ripgrep fast grep utility" "$( [ "$sel_ripgrep" = true ] && echo ON || echo OFF )" \
                     "eza" "eza modern ls file lister" "$( [ "$sel_eza" = true ] && echo ON || echo OFF )" \
                     "zoxide" "zoxide quick cd navigation tool" "$( [ "$sel_zoxide" = true ] && echo ON || echo OFF )" \
                     "fd" "fd simple/fast find utility" "$( [ "$sel_fd" = true ] && echo ON || echo OFF )" \
+                    "superfile" "superfile modern terminal file manager" "$( [ "$sel_superfile" = true ] && echo ON || echo OFF )" \
                     2> "$sub_temp" || continue
 
                 local sub_utils
                 sub_utils=$(cat "$sub_temp")
                 rm -f "$sub_temp"
 
-                sel_bat=false; sel_fzf=false; sel_ripgrep=false; sel_eza=false; sel_zoxide=false; sel_fd=false
+                sel_bat=false; sel_fzf=false; sel_ripgrep=false; sel_eza=false; sel_zoxide=false; sel_fd=false; sel_superfile=false
                 for item in $sub_utils; do
                     item="${item//\"/}"
                     [ "$item" = "bat" ] && sel_bat=true
@@ -749,15 +800,17 @@ configure_components_fallback() {
                     echo "  4) [$( [ "$sel_eza" = true ] && echo "X" || echo " " )] eza"
                     echo "  5) [$( [ "$sel_zoxide" = true ] && echo "X" || echo " " )] zoxide"
                     echo "  6) [$( [ "$sel_fd" = true ] && echo "X" || echo " " )] fd"
-                    echo "  7) Return to Main Menu"
-                    read -r -p "Toggle selection [1-7]: " sub_ch
+                    echo "  7) [$( [ "$sel_superfile" = true ] && echo "X" || echo " " )] superfile"
+                    echo "  8) Return to Main Menu"
+                    read -r -p "Toggle selection [1-8]: " sub_ch
                     [ "$sub_ch" = "1" ] && { [ "$sel_bat" = true ] && sel_bat=false || sel_bat=true; }
                     [ "$sub_ch" = "2" ] && { [ "$sel_fzf" = true ] && sel_fzf=false || sel_fzf=true; }
                     [ "$sub_ch" = "3" ] && { [ "$sel_ripgrep" = true ] && sel_ripgrep=false || sel_ripgrep=true; }
                     [ "$sub_ch" = "4" ] && { [ "$sel_eza" = true ] && sel_eza=false || sel_eza=true; }
                     [ "$sub_ch" = "5" ] && { [ "$sel_zoxide" = true ] && sel_zoxide=false || sel_zoxide=true; }
                     [ "$sub_ch" = "6" ] && { [ "$sel_fd" = true ] && sel_fd=false || sel_fd=true; }
-                    [ "$sub_ch" = "7" ] && break
+                    [ "$sub_ch" = "7" ] && { [ "$sel_superfile" = true ] && sel_superfile=false || sel_superfile=true; }
+                    [ "$sub_ch" = "8" ] && break
                 done
                 ;;
             5)
@@ -939,13 +992,14 @@ main() {
     fi
 
     # 7. Apply Modern CLI utilities
-    if [ "$sel_bat" = true ] || [ "$sel_fzf" = true ] || [ "$sel_ripgrep" = true ] || [ "$sel_eza" = true ] || [ "$sel_zoxide" = true ] || [ "$sel_fd" = true ]; then
+    if [ "$sel_bat" = true ] || [ "$sel_fzf" = true ] || [ "$sel_ripgrep" = true ] || [ "$sel_eza" = true ] || [ "$sel_zoxide" = true ] || [ "$sel_fd" = true ] || [ "$sel_superfile" = true ]; then
         [ "$sel_bat" = true ] && install_tool_if_missing "bat" "bat"
         [ "$sel_fzf" = true ] && install_tool_if_missing "fzf" "fzf"
         [ "$sel_ripgrep" = true ] && install_tool_if_missing "ripgrep" "rg"
         [ "$sel_eza" = true ] && install_tool_if_missing "eza" "eza"
         [ "$sel_zoxide" = true ] && install_tool_if_missing "zoxide" "zoxide"
         [ "$sel_fd" = true ] && install_tool_if_missing "fd" "fd"
+        [ "$sel_superfile" = true ] && install_tool_if_missing "superfile" "spf"
 
         safe_stow "shared" # Includes fzf Nord Dark setups and ripgreprc
         safe_stow "config" # Includes bat config
