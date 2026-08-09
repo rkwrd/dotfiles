@@ -902,6 +902,75 @@ safe_stow() {
     log_success "Symlinked folder '$folder' to home directory."
 }
 
+# Parse CLI arguments for non-interactive installation
+parse_args() {
+    if [ $# -eq 0 ]; then
+        return 0
+    fi
+
+    # Disable all by default and let CLI arguments enable them
+    sel_bash=false
+    sel_zsh=false
+    sel_starship=false
+    sel_tmux_config=false
+    sel_tpm=false
+    sel_neovim_config=false
+    sel_lazy_plugins=false
+    sel_bat=false
+    sel_fzf=false
+    sel_ripgrep=false
+    sel_eza=false
+    sel_zoxide=false
+    sel_fd=false
+    sel_superfile=false
+    sel_git=false
+    sel_gh=false
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --all)
+                sel_bash=true; sel_zsh=true; sel_starship=true
+                sel_tmux_config=true; sel_tpm=true
+                sel_neovim_config=true; sel_lazy_plugins=true
+                sel_bat=true; sel_fzf=true; sel_ripgrep=true; sel_eza=true; sel_zoxide=true; sel_fd=true; sel_superfile=true
+                sel_git=true; sel_gh=true
+                ;;
+            --shells)
+                sel_bash=true; sel_zsh=true; sel_starship=true
+                ;;
+            --tmux)
+                sel_tmux_config=true; sel_tpm=true
+                ;;
+            --neovim)
+                sel_neovim_config=true; sel_lazy_plugins=true
+                ;;
+            --utilities)
+                sel_bat=true; sel_fzf=true; sel_ripgrep=true; sel_eza=true; sel_zoxide=true; sel_fd=true; sel_superfile=true
+                ;;
+            --git-cli)
+                sel_git=true; sel_gh=true
+                ;;
+            --help|-h)
+                echo "Usage: ./install.sh [options]"
+                echo "Options:"
+                echo "  --all         Install all configurations and utilities"
+                echo "  --shells      Install Bash + Zsh + Starship"
+                echo "  --tmux        Install Tmux + TPM"
+                echo "  --neovim      Install Neovim + lazy.nvim IDE plugins"
+                echo "  --utilities   Install bat, fzf, ripgrep, eza, zoxide, fd, superfile"
+                echo "  --git-cli     Install Git and GitHub CLI (gh)"
+                exit 0
+                ;;
+            *)
+                log_error "Unknown argument: $1"
+                exit 1
+                ;;
+        esac
+        shift
+    done
+    return 1 # Bypasses interactive selection
+}
+
 # Main Execution Flow
 main() {
     clear
@@ -912,8 +981,10 @@ main() {
     install_tool_if_missing "git" "git"
     install_tool_if_missing "curl" "curl"
 
-    # 2. Get user selections using our open/collapse menu
-    select_components
+    # 2. Get user selections using our open/collapse menu (or parse CLI args)
+    if parse_args "$@"; then
+        select_components
+    fi
 
     # 3. Apply Git & GitHub CLI selections first
     if [ "$sel_git" = true ]; then
