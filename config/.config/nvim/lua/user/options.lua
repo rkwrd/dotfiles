@@ -24,6 +24,21 @@ opt.updatetime = 250       -- Faster completion and diagnostics response time
 opt.timeoutlen = 300       -- Faster key code sequence timeouts
 opt.clipboard = "unnamedplus" -- Sync with system clipboard
 
+-- Smart OSC 52 Clipboard sharing over SSH
+if vim.env.SSH_TTY then
+  vim.g.clipboard = {
+    name = "OSC 52",
+    copy = {
+      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+    },
+    paste = {
+      ["+"] = require("vim.ui.clipboard.osc52").paste("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+    },
+  }
+end
+
 -- UI Styling & Theme Settings
 opt.background = "dark"    -- FORCE DARK BACKGROUND FOR NORD
 opt.signcolumn = "yes"     -- Always show the sign column to prevent text shifts

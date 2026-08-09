@@ -224,4 +224,70 @@ return {
       })
     end,
   },
+
+  -- 9. FZF-Lua Fuzzy Finder
+  {
+    "ibhagwan/fzf-lua",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      local fzf = require("fzf-lua")
+      fzf.setup({
+        winopts = {
+          height = 0.85,
+          width = 0.80,
+          preview = {
+            horizontal = "right:50%",
+          },
+        },
+      })
+      -- Mappings
+      vim.keymap.set("n", "<leader>ff", fzf.files, { desc = "FZF Find Files" })
+      vim.keymap.set("n", "<leader>fg", fzf.live_grep, { desc = "FZF Live Grep" })
+      vim.keymap.set("n", "<leader>fb", fzf.buffers, { desc = "FZF Buffers" })
+      vim.keymap.set("n", "<leader>fr", fzf.resume, { desc = "FZF Resume Search" })
+      vim.keymap.set("n", "<leader>fh", fzf.help_tags, { desc = "FZF Help Tags" })
+    end,
+  },
+
+  -- 10. Smart Commenting (Comment.nvim)
+  {
+    "numToStr/Comment.nvim",
+    config = function()
+      require("Comment").setup()
+    end,
+  },
+
+  -- 11. Auto-close brackets (nvim-autopairs)
+  {
+    "windwp/nvim-autopairs",
+    event = "InsertEnter",
+    config = function()
+      require("nvim-autopairs").setup()
+    end,
+  },
+
+  -- 12. Indentation Guides (indent-blankline.nvim)
+  {
+    "lukas-reineke/indent-blankline.nvim",
+    main = "ibl",
+    config = function()
+      require("ibl").setup()
+    end,
+  },
+
+  -- 13. Git diff indicators in sidebar (gitsigns.nvim)
+  {
+    "lewis6991/gitsigns.nvim",
+    config = function()
+      require("gitsigns").setup()
+    end,
+  },
+
+  -- 14. Auto-close HTML/XML tags (nvim-ts-autotag)
+  {
+    "windwp/nvim-ts-autotag",
+    config = function()
+      require("nvim-ts-autotag").setup()
+    end,
+  },
 }

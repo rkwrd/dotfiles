@@ -188,6 +188,36 @@ install_packages() {
     esac
 }
 
+install_eza_modern() {
+    local arch
+    arch=$(uname -m)
+    local os
+    os=$(uname -s)
+
+    if [ "$os" = "Linux" ] && [ "$arch" = "x86_64" ]; then
+        log_info "Installing eza (latest stable) for Linux x86_64..."
+        mkdir -p "$HOME/.local/bin"
+        local temp_dir
+        temp_dir=$(mktemp -d)
+        curl -sSL -o "$temp_dir/eza.tar.gz" https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz
+        tar -xzf "$temp_dir/eza.tar.gz" -C "$temp_dir"
+        mv "$temp_dir/eza" "$HOME/.local/bin/eza"
+        chmod +x "$HOME/.local/bin/eza"
+        rm -rf "$temp_dir"
+        log_success "eza installed to ~/.local/bin/eza"
+    else
+        local pm
+        pm=$(detect_package_manager)
+        if [ "$pm" != "none" ]; then
+            log_info "Installing eza via package manager..."
+            install_packages "eza"
+        else
+            log_error "Unsupported platform for auto-installing eza. Please install manually."
+            exit 1
+        fi
+    fi
+}
+
 install_neovim_modern() {
     local arch
     arch=$(uname -m)
@@ -251,9 +281,8 @@ install_tool_if_missing() {
             export PATH="$HOME/.local/bin:$PATH"
             return 0
         elif [ "$tool" = "eza" ]; then
-            if [ "$pm" = "apt" ]; then
-                log_warn "eza might not be in standard apt repos. Attempting install..."
-            fi
+            install_eza_modern
+            return 0
         elif [ "$tool" = "fd" ]; then
             if [ "$pm" = "apt" ]; then pkg="fd-find"; fi
         elif [ "$tool" = "ripgrep" ]; then
