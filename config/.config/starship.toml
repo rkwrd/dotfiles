@@ -13,7 +13,7 @@ $git_status\
 $python\
 $rust\
 $golang\
-$node\
+$nodejs\
 $docker_context\
 $aws\
 $cmd_duration\
@@ -53,7 +53,7 @@ diverged = "⇕"
 untracked = "?"
 stashed = "$"
 modified = "!"
-added = "+"
+staged = "+"
 renamed = "»"
 deleted = "✘"
 
@@ -79,7 +79,7 @@ style = "fg:#5e81ac"
 symbol = " "
 style = "fg:#88c0d0"
 
-[node]
+[nodejs]
 symbol = " "
 style = "fg:#a3be8c"
 
