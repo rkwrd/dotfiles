@@ -188,18 +188,68 @@ install_packages() {
     esac
 }
 
+install_neovim_modern() {
+    local arch
+    arch=$(uname -m)
+    local os
+    os=$(uname -s)
+
+    if [ "$os" = "Linux" ] && [ "$arch" = "x86_64" ]; then
+        log_info "Installing modern Neovim (stable release) for Linux x86_64..."
+        mkdir -p "$HOME/.local/bin" "$HOME/.local/share" "$HOME/.local/lib"
+        local temp_dir
+        temp_dir=$(mktemp -d)
+        curl -sSL -o "$temp_dir/nvim.tar.gz" https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+        tar -xzf "$temp_dir/nvim.tar.gz" -C "$temp_dir"
+        cp -r "$temp_dir"/nvim-linux-x86_64/* "$HOME/.local/"
+        rm -rf "$temp_dir"
+        log_success "Modern Neovim installed to ~/.local/bin/nvim"
+    else
+        # Fall back to package manager
+        local pm
+        pm=$(detect_package_manager)
+        if [ "$pm" != "none" ]; then
+            log_info "Installing Neovim via package manager..."
+            install_packages "neovim"
+        else
+            log_error "Unsupported platform for auto-installing modern Neovim. Please install manually."
+            exit 1
+        fi
+    fi
+}
+
 install_tool_if_missing() {
     local tool=$1
     local cmd=$2
 
+    local need_install=false
     if ! command -v "$cmd" >/dev/null 2>&1; then
-        log_info "$tool is not installed."
+        need_install=true
+    elif [ "$tool" = "neovim" ]; then
+        # Version check for Neovim (requires >= 0.8.0)
+        local version_str
+        version_str=$(nvim --version | head -n 1 | awk '{print $2}')
+        version_str="${version_str#v}"
+        local major minor
+        major=$(echo "$version_str" | cut -d. -f1)
+        minor=$(echo "$version_str" | cut -d. -f2)
+        if [ "$major" -eq 0 ] && [ "$minor" -lt 8 ]; then
+            log_warn "Detected Neovim version $version_str is too old (requires >= 0.8.0 for lazy.nvim)."
+            need_install=true
+        fi
+    fi
+
+    if [ "$need_install" = true ]; then
+        log_info "$tool is not installed (or needs updating)."
         local pkg=$tool
         local pm
         pm=$(detect_package_manager)
 
         if [ "$tool" = "neovim" ]; then
-            if [ "$pm" = "apt" ]; then pkg="neovim"; fi
+            install_neovim_modern
+            # Add local bin to script's PATH to use the new nvim binary in the rest of this install script execution
+            export PATH="$HOME/.local/bin:$PATH"
+            return 0
         elif [ "$tool" = "eza" ]; then
             if [ "$pm" = "apt" ]; then
                 log_warn "eza might not be in standard apt repos. Attempting install..."
@@ -221,7 +271,7 @@ install_tool_if_missing() {
             ln -sf /usr/bin/fdfind "$HOME/.local/bin/fd"
         fi
     else
-        log_success "$tool is already installed."
+        log_success "$tool is already installed and matches required specifications."
     fi
 }
 
