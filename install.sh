@@ -254,7 +254,14 @@ install_tool_if_missing() {
 
     local need_install=false
     if ! command -v "$cmd" >/dev/null 2>&1; then
-        need_install=true
+        # Handle Debian/Ubuntu naming discrepancy for 'batcat'
+        if [ "$tool" = "bat" ] && command -v batcat >/dev/null 2>&1; then
+            mkdir -p "$HOME/.local/bin"
+            ln -sf /usr/bin/batcat "$HOME/.local/bin/bat"
+            log_success "Linked existing batcat to ~/.local/bin/bat"
+        else
+            need_install=true
+        fi
     elif [ "$tool" = "neovim" ]; then
         # Version check for Neovim (requires >= 0.8.0)
         local version_str
@@ -294,10 +301,13 @@ install_tool_if_missing() {
 
         install_packages "$pkg"
 
-        # Post-install symlink for fd-find on Debian/Ubuntu
+        # Post-install symlinks for Debian/Ubuntu packaging renames
         if [ "$tool" = "fd" ] && [ "$pm" = "apt" ]; then
             mkdir -p "$HOME/.local/bin"
             ln -sf /usr/bin/fdfind "$HOME/.local/bin/fd"
+        elif [ "$tool" = "bat" ] && [ "$pm" = "apt" ]; then
+            mkdir -p "$HOME/.local/bin"
+            ln -sf /usr/bin/batcat "$HOME/.local/bin/bat"
         fi
     else
         log_success "$tool is already installed and matches required specifications."
