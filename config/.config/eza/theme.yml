@@ -1,0 +1,34 @@
+# ~/.config/eza/theme.yml
+# Custom icon mappings for eza to ensure compatibility with all Nerd Font versions (BMP PUA)
+
+filenames:
+  "Documents":
+    icon:
+      glyph: ""
+  "Downloads":
+    icon:
+      glyph: ""
+  "Music":
+    icon:
+      glyph: ""
+  "Pictures":
+    icon:
+      glyph: ""
+  "Videos":
+    icon:
+      glyph: ""
+  "Movies":
+    icon:
+      glyph: ""
+  "Desktop":
+    icon:
+      glyph: ""
+  "Public":
+    icon:
+      glyph: ""
+  "Templates":
+    icon:
+      glyph: ""
+  "codmod":
+    icon:
+      glyph: ""

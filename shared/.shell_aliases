@@ -2,10 +2,10 @@
 
 # Override default commands if modern tools exist
 if command -v eza >/dev/null 2>&1; then
-    alias ls='eza --icons --color=always --group-directories-first'
-    alias ll='eza -la --icons --color=always --group-directories-first --classify --git --no-permissions --no-user --header'
-    alias lll='eza -la --icons --color=always --group-directories-first --classify --git --header --links --created --modified'
-    alias lt='eza --tree --level=2 --icons'
+    alias ls='eza --icons=always --color=always --group-directories-first'
+    alias ll='eza -la --icons=always --color=always --group-directories-first --classify --git --no-permissions --no-user --header'
+    alias lll='eza -la --icons=always --color=always --group-directories-first --classify --git --header --links --created --modified'
+    alias lt='eza --tree --level=2 --icons=always'
 else
     alias ls='ls --color=auto'
     alias ll='ls -la'
@@ -50,6 +50,9 @@ if command -v nvim >/dev/null 2>&1; then
     alias vi='nvim'
     alias vim='nvim'
 fi
+
+# Jetski CLI
+alias jetski='/google/bin/releases/jetski-devs/tools/cli'
 
 # Reload shell config
 alias reload='exec $SHELL -l'

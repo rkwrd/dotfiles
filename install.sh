@@ -231,6 +231,38 @@ install_superfile() {
     fi
 }
 
+install_alacritty_modern() {
+    local pm
+    pm=$(detect_package_manager)
+    if [ "$pm" = "apt" ]; then
+        if sudo -n true 2>/dev/null; then
+            install_packages "alacritty"
+        else
+            log_info "Installing alacritty to ~/.local/bin..."
+            local temp_dir
+            temp_dir=$(mktemp -d)
+            mkdir -p "$HOME/.local/bin"
+            (
+                cd "$temp_dir"
+                apt-get download alacritty >/dev/null 2>&1 || true
+                if ls alacritty*.deb >/dev/null 2>&1; then
+                    dpkg-deb -x alacritty*.deb "$temp_dir/extracted"
+                    cp "$temp_dir/extracted/usr/bin/alacritty" "$HOME/.local/bin/alacritty"
+                    chmod +x "$HOME/.local/bin/alacritty"
+                fi
+            )
+            rm -rf "$temp_dir"
+            if command -v alacritty >/dev/null 2>&1 || [ -f "$HOME/.local/bin/alacritty" ]; then
+                log_success "alacritty installed to ~/.local/bin/alacritty"
+            else
+                log_warn "Failed to extract alacritty binary automatically."
+            fi
+        fi
+    elif [ "$pm" != "none" ]; then
+        install_packages "alacritty"
+    fi
+}
+
 install_eza_modern() {
     local arch
     arch=$(uname -m)
@@ -332,6 +364,9 @@ install_tool_if_missing() {
             return 0
         elif [ "$tool" = "eza" ]; then
             install_eza_modern
+            return 0
+        elif [ "$tool" = "alacritty" ]; then
+            install_alacritty_modern
             return 0
         elif [ "$tool" = "superfile" ]; then
             install_superfile
