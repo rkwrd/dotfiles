@@ -1,0 +1,41 @@
+# ~/.amethyst.yml
+# Configured for Nord Dark Dotfiles - Symmetrical macOS Tiling Layout
+
+# Modifier Definitions:
+# mod1: option + shift (Focus navigation)
+# mod2: ctrl + option + shift (Moving/swapping windows)
+# mod3: option + shift + cmd (Unused/Resizing)
+
+# 1. Window Focus (option + shift + j/k)
+focus-ccw:
+  mod: mod1
+  key: k
+focus-cw:
+  mod: mod1
+  key: j
+
+# 2. Window Swapping (ctrl + option + shift + j/k)
+swap-ccw:
+  mod: mod2
+  key: k
+swap-cw:
+  mod: mod2
+  key: j
+
+# 3. Pane Resizing (option + shift + h/l)
+shrink-main:
+  mod: mod1
+  key: h
+expand-main:
+  mod: mod1
+  key: l
+
+# Gaps and Margins for premium visual tiling
+smart-window-margins: true
+window-margins: true
+window-margin-size: 8
+layouts:
+  - tall
+  - wide
+  - fullscreen
+  - column

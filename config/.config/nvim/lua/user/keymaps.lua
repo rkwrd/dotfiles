@@ -39,3 +39,15 @@ keymap("n", "<C-u>", "<C-u>zz")
 -- Keep search terms in the middle of the screen
 keymap("n", "n", "nzzzv")
 keymap("n", "N", "Nzzzv")
+
+-- QWERTZ-friendly splits
+keymap("n", "<leader>sv", "<cmd>vsplit<CR>", { desc = "Split Vertically" })
+keymap("n", "<leader>sh", "<cmd>split<CR>", { desc = "Split Horizontally" })
+
+-- QWERTZ-friendly buffer switching
+keymap("n", "<leader>bn", "<cmd>bnext<CR>", { desc = "Next Buffer" })
+keymap("n", "<leader>bp", "<cmd>bprevious<CR>", { desc = "Previous Buffer" })
+
+-- QWERTZ-friendly diagnostics navigation
+keymap("n", "<leader>dn", vim.diagnostic.goto_next, { desc = "Next Diagnostic" })
+keymap("n", "<leader>dp", vim.diagnostic.goto_prev, { desc = "Previous Diagnostic" })

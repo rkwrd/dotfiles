@@ -1018,6 +1018,12 @@ main() {
         # Always stow shared files and config directory if shells are activated
         safe_stow "shared"
         safe_stow "config"
+
+        # Stow Amethyst if on macOS (Darwin)
+        if [ "$(uname -s)" = "Darwin" ]; then
+            log_info "Configuring Amethyst tiling window manager..."
+            safe_stow "amethyst"
+        fi
     fi
 
     # 5. Apply Tmux Configs

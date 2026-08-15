@@ -51,6 +51,7 @@ return {
   -- 4. Syntax Highlighting and Parsing (nvim-treesitter)
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "master",
     build = ":TSUpdate",
     config = function()
       require("nvim-treesitter.configs").setup({
@@ -137,11 +138,9 @@ return {
         ensure_installed = { "lua_ls" }, -- Auto install Lua LSP
       })
 
-      local lspconfig = require("lspconfig")
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-      -- Configure Lua LSP
-      lspconfig.lua_ls.setup({
+      local lua_ls_config = {
         capabilities = capabilities,
         settings = {
           Lua = {
@@ -150,7 +149,17 @@ return {
             },
           },
         },
-      })
+      }
+
+      -- Support both legacy and modern Neovim v0.11+ LSP setups
+      if vim.lsp.config then
+        vim.lsp.config.lua_ls = lua_ls_config
+        vim.lsp.enable("lua_ls")
+      else
+        local lspconfig = require("lspconfig")
+        lspconfig.lua_ls.setup(lua_ls_config
+        )
+      end
 
       -- Keymaps for LSP functionality (only when LSP attaches)
       vim.api.nvim_create_autocmd("LspAttach", {
