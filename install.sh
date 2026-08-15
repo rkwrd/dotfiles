@@ -418,6 +418,7 @@ sel_fd=true
 sel_git=true
 sel_gh=true
 sel_superfile=true
+sel_wm=true
 
 # Helper to format status text for main menu
 get_group_status() {
@@ -477,6 +478,13 @@ get_group_status() {
                 echo "Partially Enabled"
             fi
             ;;
+        wm)
+            if [ "$sel_wm" = true ]; then
+                echo "Enabled"
+            else
+                echo "Disabled"
+            fi
+            ;;
     esac
 }
 
@@ -484,14 +492,15 @@ configure_components_whiptail() {
     while true; do
         local menu_choices
         menu_choices=$(whiptail --title "Dotfiles Configuration Groups" --menu \
-            "Choose a group to expand and customize its components, or choose Install:" 18 78 7 \
+            "Choose a group to expand and customize its components, or choose Install:" 18 78 8 \
             "1. Shells & Prompt" "($(get_group_status shells))" \
             "2. Tmux & Sessions" "($(get_group_status tmux))" \
             "3. Neovim IDE" "($(get_group_status neovim))" \
             "4. Modern CLI Tools" "($(get_group_status utilities))" \
             "5. Git & GitHub CLI" "($(get_group_status git))" \
-            "6. [ PROCEED WITH INSTALLATION ]" "Apply configs and install" \
-            "7. [ EXIT ]" "Exit setup" 3>&1 1>&2 2>&3)
+            "6. Window Managers" "($(get_group_status wm))" \
+            "7. [ PROCEED WITH INSTALLATION ]" "Apply configs and install" \
+            "8. [ EXIT ]" "Exit setup" 3>&1 1>&2 2>&3)
 
         case "$menu_choices" in
             "1. Shells & Prompt")
@@ -518,7 +527,7 @@ configure_components_whiptail() {
                     "tmux_config" "Tmux core config (.tmux.conf)" "$( [ "$sel_tmux_config" = true ] && echo ON || echo OFF )" \
                     "tpm" "Tmux Plugin Manager & session resurrection" "$( [ "$sel_tpm" = true ] && echo ON || echo OFF )" \
                     3>&1 1>&2 2>&3) || continue
-
+ 
                 sel_tmux_config=false; sel_tpm=false
                 for item in $sub_tmux; do
                     item="${item//\"/}"
@@ -533,7 +542,7 @@ configure_components_whiptail() {
                     "nvim_config" "Neovim basic config (init.lua, options, maps)" "$( [ "$sel_neovim_config" = true ] && echo ON || echo OFF )" \
                     "lazy_plugins" "lazy.nvim plugins (LSP, cmp, Telescope, Nord Dark)" "$( [ "$sel_lazy_plugins" = true ] && echo ON || echo OFF )" \
                     3>&1 1>&2 2>&3) || continue
-
+ 
                 sel_neovim_config=false; sel_lazy_plugins=false
                 for item in $sub_nvim; do
                     item="${item//\"/}"
@@ -553,7 +562,7 @@ configure_components_whiptail() {
                     "fd" "fd simple/fast find utility" "$( [ "$sel_fd" = true ] && echo ON || echo OFF )" \
                     "superfile" "superfile modern terminal file manager" "$( [ "$sel_superfile" = true ] && echo ON || echo OFF )" \
                     3>&1 1>&2 2>&3) || continue
-
+ 
                 sel_bat=false; sel_fzf=false; sel_ripgrep=false; sel_eza=false; sel_zoxide=false; sel_fd=false; sel_superfile=false
                 for item in $sub_utils; do
                     item="${item//\"/}"
@@ -573,7 +582,7 @@ configure_components_whiptail() {
                     "git" "git package installation" "$( [ "$sel_git" = true ] && echo ON || echo OFF )" \
                     "gh" "github-cli package installation" "$( [ "$sel_gh" = true ] && echo ON || echo OFF )" \
                     3>&1 1>&2 2>&3) || continue
-
+ 
                 sel_git=false; sel_gh=false
                 for item in $sub_git; do
                     item="${item//\"/}"
@@ -581,10 +590,23 @@ configure_components_whiptail() {
                     [ "$item" = "gh" ] && sel_gh=true
                 done
                 ;;
-            "6. [ PROCEED WITH INSTALLATION ]")
+            "6. Window Managers")
+                local sub_wm
+                sub_wm=$(whiptail --title "Customize Window Managers" --checklist \
+                    "Select components to enable:" 15 70 2 \
+                    "aerospace" "AeroSpace (and Amethyst) WM configs" "$( [ "$sel_wm" = true ] && echo ON || echo OFF )" \
+                    3>&1 1>&2 2>&3) || continue
+
+                sel_wm=false
+                for item in $sub_wm; do
+                    item="${item//\"/}"
+                    [ "$item" = "aerospace" ] && sel_wm=true
+                done
+                ;;
+            "7. [ PROCEED WITH INSTALLATION ]")
                 break
                 ;;
-            "7. [ EXIT ]"|*)
+            "8. [ EXIT ]"|*)
                 log_warn "Installation cancelled."
                 exit 0
                 ;;
@@ -597,14 +619,15 @@ configure_components_dialog() {
         local temp_file
         temp_file=$(mktemp)
         dialog --title "Dotfiles Configuration Groups" --menu \
-            "Choose a group to expand and customize its components, or choose Install:" 18 78 7 \
+            "Choose a group to expand and customize its components, or choose Install:" 18 78 8 \
             "1. Shells & Prompt" "($(get_group_status shells))" \
             "2. Tmux & Sessions" "($(get_group_status tmux))" \
             "3. Neovim IDE" "($(get_group_status neovim))" \
             "4. Modern CLI Tools" "($(get_group_status utilities))" \
             "5. Git & GitHub CLI" "($(get_group_status git))" \
-            "6. [ PROCEED WITH INSTALLATION ]" "Apply configs and install" \
-            "7. [ EXIT ]" "Exit setup" 2> "$temp_file"
+            "6. Window Managers" "($(get_group_status wm))" \
+            "7. [ PROCEED WITH INSTALLATION ]" "Apply configs and install" \
+            "8. [ EXIT ]" "Exit setup" 2> "$temp_file"
         
         local menu_choices
         menu_choices=$(cat "$temp_file")
@@ -700,6 +723,7 @@ configure_components_dialog() {
                     [ "$item" = "eza" ] && sel_eza=true
                     [ "$item" = "zoxide" ] && sel_zoxide=true
                     [ "$item" = "fd" ] && sel_fd=true
+                    [ "$item" = "superfile" ] && sel_superfile=true
                 done
                 ;;
             "5. Git & GitHub CLI")
@@ -722,10 +746,28 @@ configure_components_dialog() {
                     [ "$item" = "gh" ] && sel_gh=true
                 done
                 ;;
-            "6. [ PROCEED WITH INSTALLATION ]")
+            "6. Window Managers")
+                local sub_temp
+                sub_temp=$(mktemp)
+                dialog --title "Customize Window Managers" --checklist \
+                    "Select components to enable:" 15 70 2 \
+                    "aerospace" "AeroSpace (and Amethyst) WM configs" "$( [ "$sel_wm" = true ] && echo ON || echo OFF )" \
+                    2> "$sub_temp" || continue
+
+                local sub_wm
+                sub_wm=$(cat "$sub_temp")
+                rm -f "$sub_temp"
+
+                sel_wm=false
+                for item in $sub_wm; do
+                    item="${item//\"/}"
+                    [ "$item" = "aerospace" ] && sel_wm=true
+                done
+                ;;
+            "7. [ PROCEED WITH INSTALLATION ]")
                 break
                 ;;
-            "7. [ EXIT ]"|*)
+            "8. [ EXIT ]"|*)
                 log_warn "Installation cancelled."
                 exit 0
                 ;;
@@ -743,11 +785,12 @@ configure_components_fallback() {
         echo -e "  3 )  [+] Neovim IDE            ➔ ($(get_group_status neovim))"
         echo -e "  4 )  [+] Modern CLI Tools      ➔ ($(get_group_status utilities))"
         echo -e "  5 )  [+] Git & GitHub CLI      ➔ ($(get_group_status git))"
-        echo -e "  6 )  ${NORD_FROST_BLUE}[ PROCEED WITH INSTALLATION ]${NC}"
-        echo -e "  7 )  ${NORD_AURORA_RED}[ EXIT ]${NC}"
+        echo -e "  6 )  [+] Window Managers       ➔ ($(get_group_status wm))"
+        echo -e "  7 )  ${NORD_FROST_BLUE}[ PROCEED WITH INSTALLATION ]${NC}"
+        echo -e "  8 )  ${NORD_AURORA_RED}[ EXIT ]${NC}"
         echo ""
 
-        read -r -p "Enter selection [1-7]: " menu_choice
+        read -r -p "Enter selection [1-8]: " menu_choice
         case "$menu_choice" in
             1)
                 while true; do
@@ -827,9 +870,20 @@ configure_components_fallback() {
                 done
                 ;;
             6)
-                break
+                while true; do
+                    clear
+                    echo "Window Managers:"
+                    echo "  1) [$( [ "$sel_wm" = true ] && echo "X" || echo " " )] AeroSpace & Amethyst"
+                    echo "  2) Return to Main Menu"
+                    read -r -p "Toggle selection [1-2]: " sub_ch
+                    [ "$sub_ch" = "1" ] && { [ "$sel_wm" = true ] && sel_wm=false || sel_wm=true; }
+                    [ "$sub_ch" = "2" ] && break
+                done
                 ;;
             7)
+                break
+                ;;
+            8)
                 log_warn "Installation cancelled."
                 exit 0
                 ;;
@@ -925,6 +979,7 @@ parse_args() {
     sel_superfile=false
     sel_git=false
     sel_gh=false
+    sel_wm=false
 
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -933,7 +988,7 @@ parse_args() {
                 sel_tmux_config=true; sel_tpm=true
                 sel_neovim_config=true; sel_lazy_plugins=true
                 sel_bat=true; sel_fzf=true; sel_ripgrep=true; sel_eza=true; sel_zoxide=true; sel_fd=true; sel_superfile=true
-                sel_git=true; sel_gh=true
+                sel_git=true; sel_gh=true; sel_wm=true
                 ;;
             --shells)
                 sel_bash=true; sel_zsh=true; sel_starship=true
@@ -950,6 +1005,9 @@ parse_args() {
             --git-cli)
                 sel_git=true; sel_gh=true
                 ;;
+            --wm)
+                sel_wm=true
+                ;;
             --help|-h)
                 echo "Usage: ./install.sh [options]"
                 echo "Options:"
@@ -959,6 +1017,7 @@ parse_args() {
                 echo "  --neovim      Install Neovim + lazy.nvim IDE plugins"
                 echo "  --utilities   Install bat, fzf, ripgrep, eza, zoxide, fd, superfile"
                 echo "  --git-cli     Install Git and GitHub CLI (gh)"
+                echo "  --wm          Install AeroSpace and Amethyst Window Managers"
                 exit 0
                 ;;
             *)
@@ -1019,7 +1078,10 @@ main() {
         safe_stow "shared"
         safe_stow "config"
 
-        # Stow Amethyst and AeroSpace if on macOS (Darwin)
+    fi
+
+    # 5. Apply Window Managers Configs
+    if [ "$sel_wm" = true ]; then
         if [ "$(uname -s)" = "Darwin" ]; then
             log_info "Configuring Amethyst tiling window manager..."
             safe_stow "amethyst"
@@ -1028,7 +1090,7 @@ main() {
         fi
     fi
 
-    # 5. Apply Tmux Configs
+    # 6. Apply Tmux Configs
     if [ "$sel_tmux_config" = true ] || [ "$sel_tpm" = true ]; then
         if [ "$sel_tmux_config" = true ]; then
             install_tool_if_missing "tmux" "tmux"
@@ -1056,7 +1118,7 @@ main() {
         fi
     fi
 
-    # 6. Apply Neovim Configs
+    # 7. Apply Neovim Configs
     if [ "$sel_neovim_config" = true ] || [ "$sel_lazy_plugins" = true ]; then
         install_tool_if_missing "neovim" "nvim"
         # Always stow config since nvim configurations are inside config/.config/nvim
@@ -1070,7 +1132,7 @@ main() {
         fi
     fi
 
-    # 7. Apply Modern CLI utilities
+    # 8. Apply Modern CLI utilities
     if [ "$sel_bat" = true ] || [ "$sel_fzf" = true ] || [ "$sel_ripgrep" = true ] || [ "$sel_eza" = true ] || [ "$sel_zoxide" = true ] || [ "$sel_fd" = true ] || [ "$sel_superfile" = true ]; then
         [ "$sel_bat" = true ] && install_tool_if_missing "bat" "bat"
         [ "$sel_fzf" = true ] && install_tool_if_missing "fzf" "fzf"
@@ -1084,7 +1146,7 @@ main() {
         safe_stow "config" # Includes bat config
     fi
 
-    # 8. Set Zsh as default shell if Zsh config is selected and shell is not Zsh
+    # 9. Set Zsh as default shell if Zsh config is selected and shell is not Zsh
     if [ "$sel_zsh" = true ] && [ "${SHELL##*/}" != "zsh" ]; then
         local zsh_path
         zsh_path=$(command -v zsh || echo "")
@@ -1106,7 +1168,7 @@ main() {
         log_info "Your original system configurations were backed up to: $BACKUP_DIR"
     fi
 
-    # 9. Auto-reload current terminal shell with the fresh configuration
+    # 10. Auto-reload current terminal shell with the fresh configuration
     if [ -t 0 ]; then
         log_info "Activating your new shell session now..."
         if [ "$sel_zsh" = true ] && command -v zsh >/dev/null 2>&1; then

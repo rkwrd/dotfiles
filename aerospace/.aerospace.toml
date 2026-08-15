@@ -9,7 +9,7 @@ enable-normalization-opposite-orientation-for-nested-containers = true
 
 # 1. JankyBorders Integration (Starts borders daemon with optimized flags)
 after-startup-command = [
-    'exec-and-forget borders active_color=0xfffcd049 inactive_color=0x00d5dce3 width=5.0 hidpi=on ax_focus=off'
+    'exec-and-forget /opt/homebrew/bin/borders'
 ]
 
 [gaps]
@@ -47,8 +47,6 @@ alt-ctrl-e = 'layout tiles horizontal vertical'
 alt-ctrl-s = 'layout accordion horizontal vertical'
 alt-ctrl-f = 'fullscreen'
 
-# Minimize window shortcut (MacOS Native)
-alt-ctrl-m = 'macos-native-minimize'
 
 # -------------------------------------------------------------
 # Workspaces (Numbers 1-9 without blocking brackets)
