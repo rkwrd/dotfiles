@@ -1,0 +1,13 @@
+# Logs
+*.log
+
+# Vim/Neovim swaps and backups
+*.swp
+*.swo
+*~
+.netrwhist
+
+# OS-specific files
+.DS_Store
+.directory
+Thumbs.db
