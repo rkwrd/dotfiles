@@ -92,22 +92,22 @@ esc = 'mode main'
 # -------------------------------------------------------------
 # Route standard apps to designated workspaces:
 [[on-window-detected]]
-if.app-id-regex-substring = 'safari'
+if.app-name-regex-substring = 'safari'
 run = 'move-node-to-workspace 2'
 
 [[on-window-detected]]
-if.app-id-regex-substring = 'chrome'
+if.app-name-regex-substring = 'chrome'
 run = 'move-node-to-workspace 2'
 
 [[on-window-detected]]
-if.app-id-regex-substring = 'slack'
+if.app-name-regex-substring = 'slack'
 run = 'move-node-to-workspace 9'
 
 [[on-window-detected]]
-if.app-id-regex-substring = 'spotify'
+if.app-name-regex-substring = 'spotify'
 run = 'move-node-to-workspace 9'
 
-# Force macOS system preferences to float instead of tile
+# Force macOS system preferences/settings to float instead of tile
 [[on-window-detected]]
-if.app-id-regex-substring = 'systempreferences'
+if.app-name-regex-substring = 'settings|preferences'
 run = 'layout floating'
