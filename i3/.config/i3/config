@@ -1,0 +1,157 @@
+# ~/.config/i3/config
+# i3wm configuration matching MacBook Pro / AeroSpace QWERTZ bindings
+# Designed for Chromebook / Chrome Remote Desktop forwarding compatibility
+
+# Set Mod Modifier to Alt + Control (avoids Chromebook Search/Super key intercepts)
+set $mod Mod1+Control
+
+# Font for window titles and bar
+font pango:DejaVu Sans Mono 10
+
+# Use Mouse+$mod to drag floating windows
+floating_modifier Mod1
+
+# Gaps configuration (matching 6px gaps)
+gaps inner 6
+gaps outer 6
+
+# Smart gaps (only show gaps if more than one window)
+smart_gaps on
+
+# Window border style (3px pixel borders matching JankyBorders width)
+default_border pixel 3
+default_floating_border normal
+
+# -------------------------------------------------------------
+# Color Palette (Nord Light theme matching your borders configuration)
+# -------------------------------------------------------------
+# class                 border  backgr. text    indicator child_border
+client.focused          #fcd049 #fcd049 #2e3440 #fcd049   #fcd049
+client.focused_inactive #d5dce3 #d5dce3 #494d64 #d5dce3   #d5dce3
+client.unfocused        #d5dce3 #d5dce3 #494d64 #d5dce3   #d5dce3
+client.urgent           #bf616a #bf616a #ffffff #bf616a   #bf616a
+client.placeholder      #000000 #0c0c0c #ffffff #000000   #0c0c0c
+
+# -------------------------------------------------------------
+# Launchers
+# -------------------------------------------------------------
+# Start a terminal (Alt + Ctrl + Return)
+bindsym $mod+Return exec i3-sensible-terminal
+
+# Start dmenu launcher (Alt + Ctrl + d)
+bindsym $mod+d exec dmenu_run
+
+# Kill focused window (Alt + Ctrl + q)
+bindsym $mod+q kill
+
+# -------------------------------------------------------------
+# Window Focus (Vim-style HJKL)
+# -------------------------------------------------------------
+bindsym $mod+h focus left
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+l focus right
+
+# -------------------------------------------------------------
+# Move Window (Vim-style Shift+HJKL)
+# -------------------------------------------------------------
+bindsym $mod+Shift+h move left
+bindsym $mod+Shift+j move down
+bindsym $mod+Shift+k move up
+bindsym $mod+Shift+l move right
+
+# -------------------------------------------------------------
+# Layout Splitting & Toggle
+# -------------------------------------------------------------
+# Split horizontal
+bindsym $mod+b split h
+
+# Split vertical
+bindsym $mod+v split v
+
+# Toggle fullscreen
+bindsym $mod+f fullscreen toggle
+
+# Change container layout (stacked, tabbed, toggle split)
+bindsym $mod+s layout stacking
+bindsym $mod+w layout tabbed
+bindsym $mod+e layout toggle split
+
+# Toggle tiling / floating
+bindsym $mod+Shift+space floating toggle
+
+# Change focus between tiling / floating windows
+bindsym $mod+space focus mode_toggle
+
+# Focus parent container
+bindsym $mod+a focus parent
+
+# -------------------------------------------------------------
+# Workspaces (Numbers 1-9)
+# -------------------------------------------------------------
+# Switch to workspace
+bindsym $mod+1 workspace number 1
+bindsym $mod+2 workspace number 2
+bindsym $mod+3 workspace number 3
+bindsym $mod+4 workspace number 4
+bindsym $mod+5 workspace number 5
+bindsym $mod+6 workspace number 6
+bindsym $mod+7 workspace number 7
+bindsym $mod+8 workspace number 8
+bindsym $mod+9 workspace number 9
+
+# Move focused container to workspace
+bindsym $mod+Shift+1 move container to workspace number 1
+bindsym $mod+Shift+2 move container to workspace number 2
+bindsym $mod+Shift+3 move container to workspace number 3
+bindsym $mod+Shift+4 move container to workspace number 4
+bindsym $mod+Shift+5 move container to workspace number 5
+bindsym $mod+Shift+6 move container to workspace number 6
+bindsym $mod+Shift+7 move container to workspace number 7
+bindsym $mod+Shift+8 move container to workspace number 8
+bindsym $mod+Shift+9 move container to workspace number 9
+
+# -------------------------------------------------------------
+# Action Modes (Resize & System Control)
+# -------------------------------------------------------------
+# Resize Mode
+bindsym $mod+r mode "resize"
+
+mode "resize" {
+    bindsym h resize shrink width 10 px or 10 ppt
+    bindsym j resize grow height 10 px or 10 ppt
+    bindsym k resize shrink height 10 px or 10 ppt
+    bindsym l resize grow width 10 px or 10 ppt
+
+    # Back to normal mode
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+    bindsym $mod+r mode "default"
+}
+
+# -------------------------------------------------------------
+# Window Placement Routing Rules
+# -------------------------------------------------------------
+# Force browsers to Workspace 2
+for_window [class="(?i)chrome"] move to workspace number 2
+for_window [class="(?i)firefox"] move to workspace number 2
+
+# Force Slack and Spotify to Workspace 9
+for_window [class="(?i)slack"] move to workspace number 9
+for_window [class="(?i)spotify"] move to workspace number 9
+
+# Force system settings panels to float
+for_window [title="(?i)settings|preferences"] floating enable
+for_window [class="(?i)gnome-control-center"] floating enable
+
+# -------------------------------------------------------------
+# Startup Applications
+# -------------------------------------------------------------
+# Start compositor (picom/compton) for transparent title bars and shadows
+exec_always --no-startup-id picom -cg --shadow-exclude "g:e:a" --active-opacity 1.0
+
+# Reload i3 configuration (Alt + Ctrl + Shift + c)
+bindsym $mod+Shift+c reload
+
+# Restart i3 inplace (Alt + Ctrl + Shift + r)
+bindsym $mod+Shift+r restart

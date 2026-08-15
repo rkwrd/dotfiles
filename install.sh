@@ -1087,6 +1087,9 @@ main() {
             safe_stow "amethyst"
             log_info "Configuring AeroSpace tiling window manager..."
             safe_stow "aerospace"
+        else
+            log_info "Configuring i3 tiling window manager..."
+            safe_stow "i3"
         fi
     fi
 
