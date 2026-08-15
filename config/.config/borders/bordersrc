@@ -9,6 +9,7 @@ options=(
     hidpi=on
     ax_focus=on
     order=above
+    style=uniform
 )
 
 borders "${options[@]}"
