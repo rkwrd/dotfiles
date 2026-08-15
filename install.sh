@@ -1019,10 +1019,12 @@ main() {
         safe_stow "shared"
         safe_stow "config"
 
-        # Stow Amethyst if on macOS (Darwin)
+        # Stow Amethyst and AeroSpace if on macOS (Darwin)
         if [ "$(uname -s)" = "Darwin" ]; then
             log_info "Configuring Amethyst tiling window manager..."
             safe_stow "amethyst"
+            log_info "Configuring AeroSpace tiling window manager..."
+            safe_stow "aerospace"
         fi
     fi
 

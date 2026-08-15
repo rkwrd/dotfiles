@@ -1,0 +1,113 @@
+# ~/.aerospace.toml - German QWERTZ / MacBook Pro 14" i3-like Config
+
+config-version = 2
+start-at-login = true
+
+# Normalizations
+enable-normalization-flatten-containers = false
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+# 1. JankyBorders Integration (Starts borders daemon with optimized flags)
+after-startup-command = [
+    'exec-and-forget borders active_color=0xfffcd049 inactive_color=0x00d5dce3 width=5.0 hidpi=on ax_focus=off'
+]
+
+[gaps]
+inner.horizontal = 6
+inner.vertical   = 6
+outer.left       = 6
+outer.bottom     = 6
+outer.top        = 6
+outer.right      = 6
+
+[mode.main.binding]
+
+# -------------------------------------------------------------
+# Window Focus (Vim-style HJKL)
+# -------------------------------------------------------------
+alt-ctrl-h = 'focus left'
+alt-ctrl-j = 'focus down'
+alt-ctrl-k = 'focus up'
+alt-ctrl-l = 'focus right'
+
+# -------------------------------------------------------------
+# Move Window
+# -------------------------------------------------------------
+alt-ctrl-shift-h = 'move left'
+alt-ctrl-shift-j = 'move down'
+alt-ctrl-shift-k = 'move up'
+alt-ctrl-shift-l = 'move right'
+
+# -------------------------------------------------------------
+# Layout Splitting & Toggle (i3 equivalents)
+# -------------------------------------------------------------
+alt-ctrl-b = 'split horizontal'
+alt-ctrl-v = 'split vertical'
+alt-ctrl-e = 'layout tiles horizontal vertical'
+alt-ctrl-s = 'layout accordion horizontal vertical'
+alt-ctrl-f = 'fullscreen'
+
+# Minimize window shortcut (MacOS Native)
+alt-ctrl-m = 'macos-native-minimize'
+
+# -------------------------------------------------------------
+# Workspaces (Numbers 1-9 without blocking brackets)
+# -------------------------------------------------------------
+alt-ctrl-1 = 'workspace 1'
+alt-ctrl-2 = 'workspace 2'
+alt-ctrl-3 = 'workspace 3'
+alt-ctrl-4 = 'workspace 4'
+alt-ctrl-5 = 'workspace 5'
+alt-ctrl-6 = 'workspace 6'
+alt-ctrl-7 = 'workspace 7'
+alt-ctrl-8 = 'workspace 8'
+alt-ctrl-9 = 'workspace 9'
+
+# Move window to workspace
+alt-ctrl-shift-1 = 'move-node-to-workspace 1'
+alt-ctrl-shift-2 = 'move-node-to-workspace 2'
+alt-ctrl-shift-3 = 'move-node-to-workspace 3'
+alt-ctrl-shift-4 = 'move-node-to-workspace 4'
+alt-ctrl-shift-5 = 'move-node-to-workspace 5'
+alt-ctrl-shift-6 = 'move-node-to-workspace 6'
+alt-ctrl-shift-7 = 'move-node-to-workspace 7'
+alt-ctrl-shift-8 = 'move-node-to-workspace 8'
+alt-ctrl-shift-9 = 'move-node-to-workspace 9'
+
+# -------------------------------------------------------------
+# Resize Mode (i3 style)
+# -------------------------------------------------------------
+alt-ctrl-r = 'mode resize'
+
+[mode.resize.binding]
+h = 'resize width -50'
+j = 'resize height +50'
+k = 'resize height -50'
+l = 'resize width +50'
+enter = 'mode main'
+esc = 'mode main'
+
+# -------------------------------------------------------------
+# Window Placement Routing Rules
+# -------------------------------------------------------------
+# Route standard apps to designated workspaces:
+[[on-window-detected]]
+if.app-id-regex-substring = 'safari'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id-regex-substring = 'chrome'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id-regex-substring = 'slack'
+run = 'move-node-to-workspace 9'
+
+[[on-window-detected]]
+if.app-id-regex-substring = 'spotify'
+run = 'move-node-to-workspace 9'
+
+# Force macOS system preferences to float instead of tile
+[[on-window-detected]]
+if.app-id-regex-substring = 'systempreferences'
+run = 'layout floating'
