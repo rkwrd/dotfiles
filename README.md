@@ -133,9 +133,10 @@ For environments where the remote machine has restricted access or you want to d
 
 ## 🛠️ Tool Customizations
 
-### 1. Window Manager & Desktop (i3, Polybar, Rofi)
-*   **i3 Window Manager:** Configured with clean 2px pixel borders (titlebars removed), active window highlighted with a gold/amber border (`#ebcb8b`), and shortcuts for Alacritty, Vicinae, and Rofi.
-*   **Polybar:** Configured with modular blocks theme, application launcher as leftmost module, followed by terminal shortcut to Alacritty.
+### 1. Window Manager & Desktop (i3, Polybar, Rofi, Betterlockscreen)
+*   **i3 Window Manager:** Configured with clean 2px pixel borders (titlebars removed), active window highlighted with a gold/amber border (`#ebcb8b`), shortcuts for Alacritty, Vicinae, Rofi, and lock screen (`Alt+Shift+X`).
+*   **Betterlockscreen:** Standalone lock engine with blurred wallpaper pre-caching and Gaussian frosted overlay, hooked into `xss-lock` and manual trigger.
+*   **Polybar:** Mounted to the top of the screen with modular blocks theme, active virtual desktop workspaces indicator, leftmost Rofi launcher, terminal shortcut to Alacritty, and dynamic RandR screen resize reloading (`screenchange-reload = true`) for Chrome Remote Desktop sessions.
 *   **Rofi:** Clean application launcher, window switcher (`Alt+Tab`), and power menu integrations.
 
 ### 2. Terminal & Shells

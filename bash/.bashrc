@@ -16,6 +16,11 @@ shopt -s checkwinsize
 # Make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
+# enable programmable completion features
+if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
+      . /etc/bash_completion
+fi
+
 # Set truecolor support for terminal tools
 export COLORTERM=truecolor
 export TERM=xterm-256color
@@ -47,3 +52,4 @@ fi
 
 # Set path adjustments
 export PATH="$HOME/.local/bin:$PATH"
+export PATH=~/.npm-global/bin:$PATH

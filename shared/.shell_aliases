@@ -1,4 +1,5 @@
 # Shared aliases for bash and zsh
+export TZ="Europe/Berlin"
 
 # Override default commands if modern tools exist
 if command -v eza >/dev/null 2>&1; then

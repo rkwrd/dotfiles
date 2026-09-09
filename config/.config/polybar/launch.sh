@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 export DISPLAY="${DISPLAY:-:20}"
+export TZ="Europe/Berlin"
 
 dir="$HOME/.config/polybar"
 themes=(`ls --hide="launch.sh" $dir`)

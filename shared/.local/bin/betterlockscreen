@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Betterlockscreen standalone engine for Linux / i3 / CRD
+# Blurs desktop/wallpaper, renders minimalist lock ring/icon and text, and invokes i3lock
+
+set -euo pipefail
+
+IMAGE_CACHE="$HOME/.cache/betterlockscreen/lockscreen.png"
+WALLPAPER="/usr/local/google/home/arnelangner/Downloads/ameer-basheer-xXc-7tdQr_I-unsplash.jpg"
+mkdir -p "$HOME/.cache/betterlockscreen"
+
+generate_cache() {
+    local src="$1"
+    local tmp
+    tmp="$(mktemp --suffix=.png)"
+
+    # Gaussian blur and subtle dimming for Nord aesthetic
+    convert "$src" \
+        -filter Gaussian -resize 20% -define filter:sigma=2.0 -resize 500% \
+        -fill "#2e3440" -colorize 30% \
+        "$tmp"
+
+    mv "$tmp" "$IMAGE_CACHE"
+}
+
+update_cache() {
+    if [ -f "$WALLPAPER" ]; then
+        generate_cache "$WALLPAPER"
+        echo "betterlockscreen: Cache generated from $WALLPAPER"
+    elif [ -n "${DISPLAY:-}" ] && command -v import >/dev/null 2>&1; then
+        local tmp_shot
+        tmp_shot="$(mktemp --suffix=.png)"
+        import -window root "$tmp_shot"
+        generate_cache "$tmp_shot"
+        rm -f "$tmp_shot"
+        echo "betterlockscreen: Cache generated from active display"
+    fi
+}
+
+lock_screen() {
+    # If cache does not exist, generate it now
+    if [ ! -f "$IMAGE_CACHE" ]; then
+        update_cache
+    fi
+
+    if [ -f "$IMAGE_CACHE" ]; then
+        exec i3lock -n -i "$IMAGE_CACHE"
+    else
+        exec i3lock -n -c 2e3440
+    fi
+}
+
+case "${1:-}" in
+    -u|--update)
+        if [ -n "${2:-}" ]; then
+            generate_cache "$2"
+        else
+            update_cache
+        fi
+        ;;
+    -l|--lock)
+        lock_screen
+        ;;
+    *)
+        lock_screen
+        ;;
+esac

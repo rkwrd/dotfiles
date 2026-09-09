@@ -920,6 +920,18 @@ safe_stow() {
              return 0
         fi
 
+        # Special logic for shared directory (.local/bin scripts)
+        if [ "$folder" = "shared" ]; then
+             if [ -f "shared/.local/bin/betterlockscreen" ]; then
+                 mkdir -p "$HOME/.local/bin"
+                 local bl_target="$HOME/.local/bin/betterlockscreen"
+                 if [ -e "$bl_target" ] && [ ! -L "$bl_target" ]; then
+                     mkdir -p "$BACKUP_DIR/.local/bin"
+                     mv "$bl_target" "$BACKUP_DIR/.local/bin/"
+                 fi
+             fi
+        fi
+
         # Standard file stow backups
         if [ -e "$target" ] || [ -L "$target" ]; then
             local target_link
