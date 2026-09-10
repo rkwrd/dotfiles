@@ -223,8 +223,8 @@ bindsym $mod+Tab exec --no-startup-id rofi -show window -show-icons
 exec --no-startup-id dunst
 exec --no-startup-id ~/.local/bin/vicinae server
 
-# Set background wallpaper (same as XFCE4)
-exec_always --no-startup-id feh --bg-fill "/usr/local/google/home/arnelangner/Downloads/ameer-basheer-xXc-7tdQr_I-unsplash.jpg"
+# Set background wallpaper
+exec_always --no-startup-id feh --bg-fill "/usr/local/google/home/arnelangner/.local/share/wallpapers/simple_wallpaper.png"
 
 # Window margins / gaps (between windows and screen borders)
 gaps inner 10
