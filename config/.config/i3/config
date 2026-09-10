@@ -210,6 +210,7 @@ bindsym Mod1+r mode "resize"
 default_border pixel 2
 default_floating_border pixel 2
 for_window [class="^.*"] border pixel 2
+for_window [class="^Google-chrome$" window_role="browser"] floating disable
 
 # Window Colors: <class> <border> <background> <text> <indicator> <child_border>
 # Active window: Gold/Amber border (#ebcb8b) matching Nord Aurora Yellow palette
