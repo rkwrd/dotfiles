@@ -5,7 +5,7 @@
 set -euo pipefail
 
 IMAGE_CACHE="$HOME/.cache/betterlockscreen/lockscreen.png"
-WALLPAPER="/usr/local/google/home/arnelangner/Downloads/ameer-basheer-xXc-7tdQr_I-unsplash.jpg"
+WALLPAPER="$HOME/.local/share/wallpapers/default_wallpaper.jpg"
 mkdir -p "$HOME/.cache/betterlockscreen"
 
 generate_cache() {
@@ -13,10 +13,16 @@ generate_cache() {
     local tmp
     tmp="$(mktemp --suffix=.png)"
 
-    # Gaussian blur and subtle dimming for Nord aesthetic
+    # Resolve active resolution or fallback to 1920x1080
+    local res
+    res="$(xdpyinfo -display "${DISPLAY:-:20}" 2>/dev/null | awk '/dimensions:/ {print $2}' || true)"
+    [ -z "$res" ] && res="1920x1080"
+
+    # Resize/crop to current resolution, Gaussian blur and subtle dimming for Nord aesthetic
     convert "$src" \
-        -filter Gaussian -resize 20% -define filter:sigma=2.0 -resize 500% \
-        -fill "#2e3440" -colorize 30% \
+        -resize "${res}^" -gravity center -extent "$res" \
+        -filter Gaussian -resize 25% -define filter:sigma=1.5 -resize 400% \
+        -fill "#2e3440" -colorize 25% \
         "$tmp"
 
     mv "$tmp" "$IMAGE_CACHE"
@@ -42,7 +48,44 @@ lock_screen() {
         update_cache
     fi
 
-    if [ -f "$IMAGE_CACHE" ]; then
+    local locker="$HOME/.local/bin/i3lock-color"
+    [ ! -x "$locker" ] && locker="i3lock"
+
+    if [ -x "$locker" ] && [ "$locker" = "$HOME/.local/bin/i3lock-color" ]; then
+        exec "$locker" \
+            -n \
+            ${IMAGE_CACHE:+-i "$IMAGE_CACHE"} \
+            --clock \
+            --indicator \
+            --radius=100 \
+            --ring-width=8 \
+            --time-str="%H:%M" \
+            --time-font="Iosevka Nerd Font" \
+            --time-size=56 \
+            --time-color="eceff4ff" \
+            --date-str="%A, %B %d" \
+            --date-font="Iosevka Nerd Font" \
+            --date-size=18 \
+            --date-color="d8dee9ff" \
+            --time-pos="ix:iy-45" \
+            --date-pos="ix:iy-15" \
+            --ring-color="3b4252ff" \
+            --ringver-color="ebcb8bff" \
+            --ringwrong-color="bf616aff" \
+            --inside-color="2e3440cc" \
+            --insidever-color="ebcb8b33" \
+            --insidewrong-color="bf616a33" \
+            --keyhl-color="ebcb8bff" \
+            --bshl-color="bf616aff" \
+            --separator-color="00000000" \
+            --verif-text="Verifying..." \
+            --wrong-text="Incorrect Password" \
+            --verif-color="eceff4ff" \
+            --wrong-color="bf616aff" \
+            --status-pos="ix:iy+30" \
+            --verif-size=14 \
+            --wrong-size=14
+    elif [ -f "$IMAGE_CACHE" ]; then
         exec i3lock -n -i "$IMAGE_CACHE"
     else
         exec i3lock -n -c 2e3440
