@@ -57,18 +57,18 @@ lock_screen() {
             ${IMAGE_CACHE:+-i "$IMAGE_CACHE"} \
             --clock \
             --indicator \
-            --radius=100 \
-            --ring-width=8 \
+            --radius=42 \
+            --ring-width=5 \
             --time-str="%H:%M" \
             --time-font="Iosevka Nerd Font" \
-            --time-size=56 \
+            --time-size=64 \
             --time-color="eceff4ff" \
             --date-str="%A, %B %d" \
             --date-font="Iosevka Nerd Font" \
-            --date-size=18 \
+            --date-size=16 \
             --date-color="d8dee9ff" \
-            --time-pos="ix:iy-45" \
-            --date-pos="ix:iy-15" \
+            --time-pos="ix:iy-90" \
+            --date-pos="ix:iy-58" \
             --ring-color="3b4252ff" \
             --ringver-color="ebcb8bff" \
             --ringwrong-color="bf616aff" \
@@ -82,9 +82,9 @@ lock_screen() {
             --wrong-text="Incorrect Password" \
             --verif-color="eceff4ff" \
             --wrong-color="bf616aff" \
-            --status-pos="ix:iy+30" \
-            --verif-size=14 \
-            --wrong-size=14
+            --status-pos="ix:iy+68" \
+            --verif-size=13 \
+            --wrong-size=13
     elif [ -f "$IMAGE_CACHE" ]; then
         exec i3lock -n -i "$IMAGE_CACHE"
     else
