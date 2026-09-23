@@ -236,3 +236,6 @@ exec_always --no-startup-id sh -c 'sleep 2 && ~/.config/polybar/launch.sh --bloc
 
 # Keyboard layout: German QWERTZ Latin for Chromebook HP Dragonfly Elite (delayed to run after CRD input initialization)
 exec_always --no-startup-id sh -c 'sleep 3 && setxkbmap -model chromebook -layout de'
+
+# CRD display resolution watcher: dynamic wallpaper scaling and polybar reload
+exec_always --no-startup-id ~/.local/bin/crd-display-watcher

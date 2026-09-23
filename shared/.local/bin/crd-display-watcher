@@ -1,0 +1,219 @@
+#!/usr/bin/env python3
+"""CRD Display Watcher Daemon.
+
+Listens for X11 RandR screen resolution changes in Chrome Remote Desktop (CRD)
+and automatically updates the root window wallpaper and reloads Polybar.
+"""
+
+import ctypes
+import fcntl
+import logging
+import os
+import select
+import signal
+import subprocess
+import sys
+import time
+
+STATE_DIR = os.path.expanduser("~/.local/state")
+LOG_FILE = "/tmp/crd-display-watcher.log"
+LOCK_FILE = "/tmp/crd-display-watcher.lock"
+WALLPAPER_PATH = os.path.expanduser("~/.local/share/wallpapers/default_wallpaper.jpg")
+POLYBAR_LAUNCH = os.path.expanduser("~/.config/polybar/launch.sh")
+
+logging.basicConfig(
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+
+running = True
+
+
+def signal_handler(signum, frame):
+    global running
+    logging.info("Received termination signal %s, exiting.", signum)
+    running = False
+
+
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
+
+
+def acquire_lock():
+    lock_fd = open(LOCK_FILE, "w")
+    try:
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return lock_fd
+    except (BlockingIOError, OSError):
+        logging.warning("Another instance of crd-display-watcher is already running. Exiting.")
+        sys.exit(0)
+
+
+def load_x11():
+    try:
+        x11 = ctypes.cdll.LoadLibrary("libX11.so.6")
+        xrandr = ctypes.cdll.LoadLibrary("libXrandr.so.2")
+    except OSError as e:
+        logging.error("Failed to load X11 / Xrandr libraries: %s", e)
+        return None, None
+
+    x11.XOpenDisplay.restype = ctypes.c_void_p
+    x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
+
+    x11.XCloseDisplay.restype = ctypes.c_int
+    x11.XCloseDisplay.argtypes = [ctypes.c_void_p]
+
+    x11.XDefaultRootWindow.restype = ctypes.c_ulong
+    x11.XDefaultRootWindow.argtypes = [ctypes.c_void_p]
+
+    x11.XConnectionNumber.restype = ctypes.c_int
+    x11.XConnectionNumber.argtypes = [ctypes.c_void_p]
+
+    x11.XPending.restype = ctypes.c_int
+    x11.XPending.argtypes = [ctypes.c_void_p]
+
+    class XEvent(ctypes.Structure):
+        _fields_ = [("pad", ctypes.c_byte * 192)]
+
+    x11.XNextEvent.restype = ctypes.c_int
+    x11.XNextEvent.argtypes = [ctypes.c_void_p, ctypes.POINTER(XEvent)]
+
+    x11.XGetGeometry.restype = ctypes.c_int
+    x11.XGetGeometry.argtypes = [
+        ctypes.c_void_p,
+        ctypes.c_ulong,
+        ctypes.POINTER(ctypes.c_ulong),
+        ctypes.POINTER(ctypes.c_int),
+        ctypes.POINTER(ctypes.c_int),
+        ctypes.POINTER(ctypes.c_uint),
+        ctypes.POINTER(ctypes.c_uint),
+        ctypes.POINTER(ctypes.c_uint),
+        ctypes.POINTER(ctypes.c_uint),
+    ]
+
+    xrandr.XRRSelectInput.restype = ctypes.c_int
+    xrandr.XRRSelectInput.argtypes = [ctypes.c_void_p, ctypes.c_ulong, ctypes.c_int]
+
+    return x11, xrandr
+
+
+def get_root_geometry(x11, dpy, root):
+    root_ret = ctypes.c_ulong()
+    x = ctypes.c_int()
+    y = ctypes.c_int()
+    width = ctypes.c_uint()
+    height = ctypes.c_uint()
+    border_width = ctypes.c_uint()
+    depth = ctypes.c_uint()
+
+    ret = x11.XGetGeometry(
+        dpy,
+        root,
+        ctypes.byref(root_ret),
+        ctypes.byref(x),
+        ctypes.byref(y),
+        ctypes.byref(width),
+        ctypes.byref(height),
+        ctypes.byref(border_width),
+        ctypes.byref(depth),
+    )
+    if ret != 0:
+        return width.value, height.value
+    return None, None
+
+
+def apply_display_changes(width, height):
+    logging.info("Applying display changes for resolution %sx%s", width, height)
+
+    # 1. Update root window background using feh
+    if os.path.isfile(WALLPAPER_PATH):
+        try:
+            subprocess.run(
+                ["feh", "--bg-fill", WALLPAPER_PATH],
+                timeout=5,
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            logging.info("Wallpaper refreshed via feh --bg-fill")
+        except Exception as e:
+            logging.error("Failed to run feh: %s", e)
+
+    # 2. Reload Polybar blocks theme
+    if os.path.isfile(POLYBAR_LAUNCH) and os.access(POLYBAR_LAUNCH, os.X_OK):
+        try:
+            subprocess.run(
+                [POLYBAR_LAUNCH, "--blocks"],
+                timeout=5,
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            logging.info("Polybar reloaded via launch.sh --blocks")
+        except Exception as e:
+            logging.error("Failed to reload Polybar: %s", e)
+
+
+def main():
+    lock_fd = acquire_lock()
+    logging.info("crd-display-watcher starting up...")
+
+    x11, xrandr = load_x11()
+    if not x11 or not xrandr:
+        sys.exit(1)
+
+    display_name = os.environ.get("DISPLAY", ":20").encode("utf-8")
+    last_width, last_height = None, None
+
+    class XEvent(ctypes.Structure):
+        _fields_ = [("pad", ctypes.c_byte * 192)]
+
+    event = XEvent()
+
+    while running:
+        dpy = x11.XOpenDisplay(display_name)
+        if not dpy:
+            time.sleep(2)
+            continue
+
+        try:
+            root = x11.XDefaultRootWindow(dpy)
+            # RRScreenChangeNotifyMask = 1 << 0
+            xrandr.XRRSelectInput(dpy, root, 1)
+
+            fd = x11.XConnectionNumber(dpy)
+            w, h = get_root_geometry(x11, dpy, root)
+            if w and h and (w != last_width or h != last_height):
+                logging.info("Initial resolution detected: %sx%s", w, h)
+                last_width, last_height = w, h
+                apply_display_changes(w, h)
+
+            while running:
+                # Wait for RandR events or timeout every 2.5s for fallback check
+                r, _, _ = select.select([fd], [], [], 2.5)
+
+                if r:
+                    # Debounce rapid resizing bursts: wait 0.4s and drain pending events
+                    time.sleep(0.4)
+                    while x11.XPending(dpy) > 0:
+                        x11.XNextEvent(dpy, ctypes.byref(event))
+
+                # Check root window geometry
+                w, h = get_root_geometry(x11, dpy, root)
+                if w and h and (w != last_width or h != last_height):
+                    logging.info("Resolution change: %sx%s -> %sx%s", last_width, last_height, w, h)
+                    last_width, last_height = w, h
+                    apply_display_changes(w, h)
+
+        except Exception as e:
+            logging.error("Exception in event loop: %s", e)
+            time.sleep(1)
+        finally:
+            x11.XCloseDisplay(dpy)
+
+    logging.info("crd-display-watcher stopped.")
+
+
+if __name__ == "__main__":
+    main()
