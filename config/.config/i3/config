@@ -63,13 +63,8 @@ bindsym Mod1+Shift+q kill
 # lock screen
 bindsym Mod1+Shift+x exec --no-startup-id ~/.local/bin/betterlockscreen -l
 
-# start default program launcher (Vicinae)
-bindsym Mod1+d exec --no-startup-id ~/.local/bin/vicinae toggle
-# A more modern dmenu replacement is rofi:
-# bindsym Mod1+d exec "rofi -modi drun,run -show drun"
-# There also is i3-dmenu-desktop which only displays applications shipping a
-# .desktop file. It is a wrapper around dmenu, so you need that installed.
-# bindsym Mod1+d exec --no-startup-id i3-dmenu-desktop
+# start default program launcher (Rofi)
+bindsym Mod1+d exec --no-startup-id ~/.config/rofi/launchers/type-1/launcher.sh
 
 # change focus
 bindsym Mod1+$left focus left
@@ -222,7 +217,6 @@ client.placeholder      #2e3440 #2e3440 #ffffff #2e3440 #2e3440
 
 bindsym $mod+Tab exec --no-startup-id rofi -show window -show-icons
 exec --no-startup-id dunst
-exec --no-startup-id ~/.local/bin/vicinae server
 
 # Set background wallpaper
 exec_always --no-startup-id feh --bg-fill "/usr/local/google/home/arnelangner/.local/share/wallpapers/default_wallpaper.jpg"
@@ -234,8 +228,8 @@ gaps outer 5
 # Start Polybar (adi1090x/polybar-themes - blocks theme in dark mode)
 exec_always --no-startup-id sh -c 'sleep 2 && ~/.config/polybar/launch.sh --blocks'
 
-# Keyboard layout: German QWERTZ Latin for Chromebook HP Dragonfly Elite (delayed to run after CRD input initialization)
-exec_always --no-startup-id sh -c 'sleep 3 && setxkbmap -model chromebook -layout de'
+# Keyboard layout & repeat tuning: German QWERTZ Latin with fast 200ms delay and 45Hz repeat
+exec_always --no-startup-id sh -c 'sleep 3 && setxkbmap -model chromebook -layout de && xset r rate 200 45'
 
 # CRD display resolution watcher: dynamic wallpaper scaling and polybar reload
 exec_always --no-startup-id ~/.local/bin/crd-display-watcher

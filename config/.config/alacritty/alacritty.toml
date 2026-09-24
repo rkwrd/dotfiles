@@ -97,8 +97,7 @@ cyan = "#6d96a5"
 white = "#aeb3bb"
 
 [cursor]
-style = { shape = "Block", blinking = "On" }
-blink_interval = 500
+style = { shape = "Block", blinking = "Off" }
 unfocused_hollow = true
 
 [scrolling]
