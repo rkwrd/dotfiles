@@ -13,7 +13,15 @@ elif [ -f "/usr/local/bin/brew" ]; then
 fi
 
 # Path setup
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/google-cloud-sdk/bin:$HOME/.local/bin:$PATH"
+
+# Google Cloud SDK completions and environment
+if [ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]; then
+    source "$HOME/google-cloud-sdk/path.zsh.inc"
+fi
+if [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]; then
+    source "$HOME/google-cloud-sdk/completion.zsh.inc"
+fi
 
 # History Configuration
 HISTFILE="$HOME/.zsh_history"
@@ -48,6 +56,7 @@ bindkey '^R' history-incremental-search-backward
 # Source shared shell definitions
 [ -f "$HOME/.shell_aliases" ] && source "$HOME/.shell_aliases"
 [ -f "$HOME/.fzf_nord" ] && source "$HOME/.fzf_nord"
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
 
 # Load plugins manually if installed (highly optimized, no bloated manager needed)
 # Typical plugin paths for debian, arch, and homebrew

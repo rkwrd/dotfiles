@@ -1,16 +1,11 @@
 # ~/.aerospace.toml - German QWERTZ / MacBook Pro 14" i3-like Config
 
 config-version = 2
-start-at-login = true
+start-at-login = false
 
 # Normalizations
 enable-normalization-flatten-containers = false
 enable-normalization-opposite-orientation-for-nested-containers = true
-
-# 1. JankyBorders Integration (Starts borders daemon with optimized flags)
-after-startup-command = [
-    'exec-and-forget /opt/homebrew/bin/borders'
-]
 
 [gaps]
 inner.horizontal = 6
@@ -49,28 +44,30 @@ alt-ctrl-f = 'fullscreen'
 
 
 # -------------------------------------------------------------
-# Workspaces (Numbers 1-9 without blocking brackets)
+# Workspaces: U & I (MacBook), O & P (External Screen)
 # -------------------------------------------------------------
-alt-ctrl-1 = 'workspace 1'
-alt-ctrl-2 = 'workspace 2'
-alt-ctrl-3 = 'workspace 3'
-alt-ctrl-4 = 'workspace 4'
-alt-ctrl-5 = 'workspace 5'
-alt-ctrl-6 = 'workspace 6'
-alt-ctrl-7 = 'workspace 7'
-alt-ctrl-8 = 'workspace 8'
-alt-ctrl-9 = 'workspace 9'
+alt-ctrl-u = 'workspace u'
+alt-ctrl-i = 'workspace i'
+alt-ctrl-o = 'workspace o'
+alt-ctrl-p = 'workspace p'
 
 # Move window to workspace
-alt-ctrl-shift-1 = 'move-node-to-workspace 1'
-alt-ctrl-shift-2 = 'move-node-to-workspace 2'
-alt-ctrl-shift-3 = 'move-node-to-workspace 3'
-alt-ctrl-shift-4 = 'move-node-to-workspace 4'
-alt-ctrl-shift-5 = 'move-node-to-workspace 5'
-alt-ctrl-shift-6 = 'move-node-to-workspace 6'
-alt-ctrl-shift-7 = 'move-node-to-workspace 7'
-alt-ctrl-shift-8 = 'move-node-to-workspace 8'
-alt-ctrl-shift-9 = 'move-node-to-workspace 9'
+alt-ctrl-shift-u = 'move-node-to-workspace u'
+alt-ctrl-shift-i = 'move-node-to-workspace i'
+alt-ctrl-shift-o = 'move-node-to-workspace o'
+alt-ctrl-shift-p = 'move-node-to-workspace p'
+
+# -------------------------------------------------------------
+# Dynamic Monitor Force Assignment
+# -------------------------------------------------------------
+[workspace-to-monitor-force-assignment]
+# Workspaces on MacBook screen
+u = 'built-in'
+i = 'built-in'
+
+# Workspaces on ANY external display / virtual screen (falls back to built-in when unplugged)
+o = ['^((?!built-in).)*$', 'built-in']
+p = ['^((?!built-in).)*$', 'built-in']
 
 # -------------------------------------------------------------
 # Resize Mode (i3 style)
@@ -88,24 +85,19 @@ esc = 'mode main'
 # -------------------------------------------------------------
 # Window Placement Routing Rules
 # -------------------------------------------------------------
-# Route standard apps to designated workspaces:
 [[on-window-detected]]
-if.app-name-regex-substring = 'safari'
-run = 'move-node-to-workspace 2'
+if.app-name-regex-substring = 'safari|chrome'
+run = 'move-node-to-workspace o'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'chrome'
-run = 'move-node-to-workspace 2'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'slack'
-run = 'move-node-to-workspace 9'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'spotify'
-run = 'move-node-to-workspace 9'
+if.app-name-regex-substring = 'slack|spotify'
+run = 'move-node-to-workspace u'
 
 # Force macOS system preferences/settings to float instead of tile
 [[on-window-detected]]
 if.app-name-regex-substring = 'settings|preferences'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'telegram|whatsapp'
 run = 'layout floating'

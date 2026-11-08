@@ -11,3 +11,9 @@
 .DS_Store
 .directory
 Thumbs.db
+
+# Local environment & secret files (prevent committing private keys)
+*.local
+.zshrc.local
+.zshenv.local
+.secrets
